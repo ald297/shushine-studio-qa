@@ -1,0 +1,108 @@
+erDiagram
+    %% ================================================================
+    %% DIAGRAMA ENTIDAD-RELACIÓN - SALÓN DE BELLEZA MULTI-SUCURSAL
+    %% Paleta "Elegancia Serena" · Supervisado por Orquestador Nemotron 3 Ultra
+    %% ================================================================
+
+    %% COLORES PARA AGRUPAMIENTO VISUAL
+    %% Nivel Organización (Tenant)
+    %% Nivel Sucursal (Branch)
+    %% Nivel Operacional (Citas, Ventas, Stock)
+    %% Nivel Catálogo (Servicios, Productos, Clientes)
+
+    organizations ||--o{ branches : "1:N (tenant)"
+    organizations ||--o{ users : "1:N (perfiles)"
+    organizations ||--o{ services : "1:N (catálogo)"
+    organizations ||--o{ service_categories : "1:N"
+    organizations ||--o{ products : "1:N (catálogo)"
+    organizations ||--o{ product_categories : "1:N"
+    organizations ||--o{ customers : "1:N (clientes)"
+    organizations ||--o{ staff : "1:N (profesionales)"
+    organizations ||--o{ packages : "1:N (paquetes)"
+    organizations ||--o{ stock_movements : "1:N (trazabilidad)"
+    organizations ||--o{ stock_transfers : "1:N (transferencias)"
+    organizations ||--o{ sales : "1:N (ventas)"
+    organizations ||--o{ appointments : "1:N (citas)"
+    organizations ||--o{ user_roles : "1:N (asignación roles)"
+
+    %% SUCURSALES - Centro operativo
+    branches ||--o{ appointments : "1:N (citas en sucursal)"
+    branches ||--o{ sales : "1:N (ventas en sucursal)"
+    branches ||--o{ branch_stock : "1:N (inventario real)"
+    branches ||--o{ staff : "1:N (profesionales asignados)"
+    branches ||--o{ staff_schedules : "1:N (horarios)"
+    branches ||--o{ stock_transfers : "origen"
+    branches ||--o{ stock_transfers : "destino"
+    branches ||--o{ customers : "sucursal preferida"
+    branches ||--o{ user_roles : "rol en sucursal"
+
+    %% USUARIOS Y ROLES
+    users ||--o{ user_roles : "N:M (roles por sucursal)"
+    roles ||--o{ user_roles : "catálogo"
+    users ||--o| staff : "1:0..1 (puede tener login)"
+
+    %% SERVICIOS Y CATEGORÍAS
+    service_categories ||--o{ services : "1:N"
+    services ||--o{ appointments : "1:N (servicio en cita)"
+    services ||--o{ sale_items : "1:N (servicio vendido)"
+    services }|--o{ packages : "incluidos en paquetes (JSON)"
+
+    %% PROFESIONALES
+    staff ||--o{ appointments : "1:N (citas asignadas)"
+    staff ||--o{ staff_schedules : "1:N (disponibilidad)"
+    staff ||--o{ sale_items : "profesional que realizó servicio"
+    staff ||--o{ customers : "top profesional (vista)"
+
+    %% CLIENTES
+    customers ||--o{ appointments : "1:N (historial citas)"
+    customers ||--o{ sales : "1:N (compras)"
+    customers ||--o{ customer_packages : "1:N (paquetes comprados)"
+    customers ||--o{ payments : "vía sales"
+
+    %% CITAS (ENTIDAD CENTRAL)
+    appointments }|--|| branches : "sucursal"
+    appointments }|--|| customers : "cliente"
+    appointments }|--|| staff : "profesional"
+    appointments }|--|| services : "servicio"
+    appointments ||--o| sales : "venta vinculada (opcional)"
+
+    %% INVENTARIO MULTI-ALMACÉN
+    products ||--o{ branch_stock : "1:N (stock por sucursal)"
+    products ||--o{ stock_movements : "1:N (kardex)"
+    products ||--o{ sale_items : "1:N (producto vendido)"
+    products ||--o{ stock_transfer_items : "1:N (transferencia)"
+    branch_stock }|--|| branches : "sucursal"
+    branch_stock }|--|| products : "producto"
+
+    %% MOVIMIENTOS Y TRANSFERENCIAS
+    stock_movements }|--|| branches : "sucursal origen"
+    stock_movements }|--|| products : "producto"
+    stock_transfers }|--|| branches : "origen"
+    stock_transfers }|--|| branches : "destino"
+    stock_transfers ||--o{ stock_transfer_items : "1:N (detalle)"
+
+    %% VENTAS Y POS
+    sales }|--|| branches : "sucursal"
+    sales }|--o| customers : "cliente (opcional)"
+    sales }|--o| staff : "vendedor"
+    sales }|--o| appointments : "cita vinculada"
+    sales ||--o{ sale_items : "1:N (líneas)"
+    sales ||--o{ payments : "1:N (métodos pago)"
+
+    %% PAQUETES / FIDELIDAD
+    packages ||--o{ customer_packages : "1:N (comprados)"
+    customer_packages }|--|| customers : "cliente"
+    customer_packages }|--|| packages : "paquete"
+
+    %% ESTILOS VISUALES (para Mermaid Live Editor)
+    classDef tenant fill:#1A1A2E,color:#D4A574,stroke:#D4A574,stroke-width:2px;
+    classDef branch fill:#2D3E50,color:#E8D5C4,stroke:#D4A574,stroke-width:2px;
+    classDef operational fill:#1E3A2E,color:#A8C4B8,stroke:#A8C4B8,stroke-width:1.5px;
+    classDef catalog fill:#3D2E3D,color:#E8D5C4,stroke:#D4A574,stroke-width:1.5px;
+    classDef people fill:#1A1A2E,color:#D4A574,stroke:#D4A574,stroke-dasharray: 5 5;
+
+    class organizations tenant;
+    class branches,branch_stock,staff_schedules,stock_transfers branch;
+    class appointments,sales,sale_items,payments,stock_movements,stock_transfer_items,customer_packages operational;
+    class services,service_categories,products,product_categories,packages catalog;
+    class users,roles,user_roles,staff,customers people;

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E6BE"/>
+      <stop offset="30%" stop-color="#E5C778"/>
+      <stop offset="65%" stop-color="#C5A059"/>
+      <stop offset="100%" stop-color="#8B6508"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3D6"/>
+      <stop offset="50%" stop-color="#E5C778"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+    <linearGradient id="petalPink" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD6DF"/>
+      <stop offset="100%" stop-color="#E87A90"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(54, 54) scale(0.44) translate(-150, -89)">
+    <!-- Sparkle star at top -->
+    <path d="M 150 18 Q 150 25 156 25 Q 150 25 150 32 Q 150 25 144 25 Q 150 25 150 18 Z" fill="url(#goldLight)"/>
+
+    <!-- Petal Fills (Delicate Rose Highlights) -->
+    <path d="M 150 34 C 138 60 134 95 150 120 C 166 95 162 60 150 34 Z" fill="url(#petalPink)" opacity="0.45"/>
+    <path d="M 148 46 C 132 55 116 80 126 112 C 136 94 144 76 148 46 Z" fill="url(#petalPink)" opacity="0.35"/>
+    <path d="M 152 46 C 168 55 184 80 174 112 C 164 94 156 76 152 46 Z" fill="url(#petalPink)" opacity="0.35"/>
+
+    <!-- Lotus Flower Outlines -->
+    <path d="M 150 34 C 138 60 134 95 150 120 C 166 95 162 60 150 34 Z" fill="none" stroke="url(#goldGrad)" stroke-width="3.5" stroke-linejoin="round"/>
+    
+    <!-- Stylized Elegant 'S' inside Center Petal -->
+    <path d="M 156 58 C 153 52 147 52 145 56 C 143 60 146 64 153 68 C 158 71 161 76 159 82 C 156 90 145 92 142 86 M 143 85 C 145 88 152 88 154 84 C 156 80 152 76 146 72 C 141 68 139 63 142 57 C 145 50 155 49 158 54" 
+          fill="url(#goldLight)"/>
+
+    <!-- Inner Pair of Petals -->
+    <path d="M 148 46 C 132 55 116 80 126 112 C 136 94 144 76 148 46 Z" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M 152 46 C 168 55 184 80 174 112 C 164 94 156 76 152 46 Z" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+
+    <!-- Mid Pair of Petals -->
+    <path d="M 144 65 C 120 72 100 98 108 126 C 122 115 134 100 144 80" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M 156 65 C 180 72 200 98 192 126 C 178 115 166 100 156 80" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+
+    <!-- Outer Wide Petals -->
+    <path d="M 136 90 C 104 95 82 118 90 140 C 108 135 125 124 138 112" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M 164 90 C 196 95 218 118 210 140 C 192 135 175 124 162 112" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linejoin="round"/>
+
+    <!-- Lower Base Petals -->
+    <path d="M 120 128 C 96 138 88 152 104 160 C 124 154 138 142 146 132" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 180 128 C 204 138 212 152 196 160 C 176 154 162 142 154 132" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Central Base Leaflet Curve -->
+    <path d="M 138 135 C 146 142 154 142 162 135" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

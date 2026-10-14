@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShushineStudio.Mobile.Presentation.Views.Catalog.ClientProductsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Catalog"
+    xmlns:models="clr-namespace:ShushineStudio.Mobile.Domain.Entities"
+    x:DataType="vm:ClientProductsViewModel"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- HEADER CON SELECTOR CATÁLOGO -->
+        <Grid Grid.Row="0" BackgroundColor="{StaticResource Surface}"
+              RowDefinitions="Auto,Auto,Auto"
+              Padding="16,48,16,12">
+
+            <!-- Título y botón volver -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+                <ImageButton Grid.Column="0"
+                             Source="arrow_left.svg"
+                             WidthRequest="28" HeightRequest="28"
+                             BackgroundColor="Transparent"
+                             HorizontalOptions="Start"
+                             Clicked="OnRegresarTapped" />
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="2">
+                    <Label Text="Catálogo"
+                           FontFamily="PlayfairDisplayBold"
+                           FontSize="20"
+                           TextColor="{StaticResource TextPrimary}"
+                           HorizontalOptions="Center" />
+                    <Label Text="Shunshine Studio • Atelier de Belleza"
+                           FontFamily="PlusJakartaSans"
+                           FontSize="11"
+                           TextColor="{StaticResource TextSecondary}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+                <Button Grid.Column="2"
+                        Text="↻"
+                        Command="{Binding CargarProductosCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}"
+                        FontSize="18"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        Padding="0" />
+            </Grid>
+
+            <!-- Selector chips Servicios | Productos -->
+            <Border Grid.Row="1"
+                    Padding="4"
+                    BackgroundColor="{StaticResource SurfaceVariant}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 9999"
+                    Margin="0,0,0,0">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="0">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 9999"
+                            BackgroundColor="Transparent"
+                            Stroke="Transparent"
+                            Padding="0,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRegresarServiciosTapped" />
+                        </Border.GestureRecognizers>
+                        <Label Text="✂ Servicios"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"
+                               HorizontalOptions="Center" />
+                    </Border>
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 9999"
+                            BackgroundColor="{StaticResource Primary}"
+                            Stroke="Transparent"
+                            Padding="0,8">
+                        <Label Text="🛍 Productos"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="13"
+                               TextColor="White"
+                               HorizontalOptions="Center" />
+                    </Border>
+                </Grid>
+            </Border>
+
+
+            <!-- Buscador de Productos -->
+            <Border
+                Grid.Row="2"
+                Margin="0,14,0,0"
+                BackgroundColor="{StaticResource Background}"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="12,4">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Label
+                        Grid.Column="0"
+                        Text="🔍"
+                        FontSize="14"
+                        VerticalOptions="Center"
+                        Margin="4,0,8,0" />
+                    <SearchBar
+                        Grid.Column="1"
+                        Text="{Binding SearchText}"
+                        Placeholder="Buscar por nombre o marca..."
+                        PlaceholderColor="{StaticResource TextSecondary}"
+                        TextColor="{StaticResource TextPrimary}"
+                        FontFamily="PlusJakartaSans"
+                        FontSize="13"
+                        BackgroundColor="Transparent"
+                        CancelButtonColor="{StaticResource Primary}">
+                        <SearchBar.Behaviors>
+                            <!-- El binding de texto reactivo actualiza la lista -->
+                        </SearchBar.Behaviors>
+                    </SearchBar>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- LISTA DE PRODUCTOS                        -->
+        <!-- ══════════════════════════════════════════ -->
+        <RefreshView
+            Grid.Row="1"
+            IsRefreshing="{Binding IsBusy}"
+            Command="{Binding CargarProductosCommand}"
+            RefreshColor="{StaticResource Primary}">
+
+            <ScrollView Padding="16,16,16,24">
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Estado Vacío -->
+                    <Border
+                        IsVisible="{Binding ShowEmptyState}"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="28"
+                        Margin="0,30,0,0"
+                        HorizontalOptions="Center">
+                        <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="🛍️" FontSize="36" HorizontalOptions="Center" />
+                            <Label
+                                Text="No hay productos disponibles"
+                                FontFamily="PlayfairDisplay"
+                                FontSize="17"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextPrimary}"
+                                HorizontalOptions="Center" />
+                            <Label
+                                Text="Por el momento no se encontraron productos en el salón. Vuelve a consultar más tarde."
+                                FontFamily="PlusJakartaSans"
+                                FontSize="12"
+                                TextColor="{StaticResource TextSecondary}"
+                                HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Tarjetas de Productos -->
+                    <VerticalStackLayout
+                        Spacing="12"
+                        BindableLayout.ItemsSource="{Binding Productos}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:Producto">
+                                <Border
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="14">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ClientProductsViewModel}}, Path=VerDetalleCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalOptions="Center">
+                                        <!-- Imagen / Icono de Producto -->
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="68"
+                                            HeightRequest="68"
+                                            StrokeShape="RoundRectangle 12"
+                                            BackgroundColor="#FCECEF"
+                                            Stroke="{StaticResource Outline}"
+                                            StrokeThickness="1">
+                                            <Grid>
+                                                <!-- Imagen Real si existe -->
+                                                <Image
+                                                    Source="{Binding ImagenValidaUrl}"
+                                                    Aspect="AspectFill"
+                                                    WidthRequest="68"
+                                                    HeightRequest="68"
+                                                    IsVisible="{Binding TieneImagen}" />
+                                                <!-- Placeholder Elegante si no tiene imagen -->
+                                                <VerticalStackLayout
+                                                    IsVisible="{Binding NoTieneImagen}"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center"
+                                                    Spacing="2">
+                                                    <Label
+                                                        Text="✨"
+                                                        FontSize="22"
+                                                        HorizontalOptions="Center" />
+                                                    <Label
+                                                        Text="Shunshine"
+                                                        FontFamily="PlusJakartaSans"
+                                                        FontSize="8"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource Primary}"
+                                                        HorizontalOptions="Center" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Información -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <Label
+                                                Text="{Binding Nombre}"
+                                                FontFamily="PlusJakartaSans"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource TextPrimary}"
+                                                LineBreakMode="TailTruncation"
+                                                MaxLines="1" />
+                                            <Label
+                                                Text="{Binding Descripcion}"
+                                                FontFamily="PlusJakartaSans"
+                                                FontSize="11"
+                                                TextColor="{StaticResource TextSecondary}"
+                                                LineBreakMode="TailTruncation"
+                                                MaxLines="2" />
+                                            <HorizontalStackLayout Spacing="8" Margin="0,2,0,0">
+                                                <Label
+                                                    Text="{Binding Marca, StringFormat='Marca: {0}'}"
+                                                    FontFamily="PlusJakartaSans"
+                                                    FontSize="10"
+                                                    TextColor="{StaticResource TextSecondary}"
+                                                    IsVisible="{Binding TieneMarca}" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <!-- Precio y Estado -->
+                                        <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Label
+                                                Text="{Binding Precio, StringFormat='${0:F2}'}"
+                                                FontFamily="PlayfairDisplay"
+                                                FontSize="16"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource Primary}"
+                                                HorizontalOptions="End" />
+                                            <Border
+                                                BackgroundColor="#E8F5E9"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 6"
+                                                Padding="6,2"
+                                                HorizontalOptions="End">
+                                                <Label
+                                                    Text="Disponible"
+                                                    FontFamily="PlusJakartaSans"
+                                                    FontSize="9"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#2E7D32" />
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

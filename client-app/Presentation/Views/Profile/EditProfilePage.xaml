@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Profile"
+    x:Class="ShushineStudio.Mobile.Presentation.Views.Profile.EditProfilePage"
+    x:DataType="vm:EditProfileViewModel"
+    BackgroundColor="{StaticResource Background}"
+    Shell.NavBarIsVisible="false"
+    Title="Editar Perfil">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- HEADER -->
+        <Grid Grid.Row="0" BackgroundColor="{StaticResource Surface}" Padding="16,52,16,16">
+            <Grid ColumnDefinitions="44,*,44">
+                <ImageButton
+                    Grid.Column="0"
+                    Source="arrow_left.svg"
+                    Command="{Binding RegresarCommand}"
+                    WidthRequest="28" HeightRequest="28"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="Start" VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="4">
+                    <Label
+                        Text="Editar Perfil"
+                        FontFamily="PlayfairDisplay"
+                        FontSize="18" FontAttributes="Bold"
+                        TextColor="{StaticResource TextPrimary}"
+                        HorizontalOptions="Center" />
+                    <BoxView HeightRequest="2" WidthRequest="40"
+                             BackgroundColor="{StaticResource Secondary}"
+                             HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Grid>
+            <BoxView Grid.Row="1" HeightRequest="1" BackgroundColor="{StaticResource Border}" Margin="0,12,0,0" />
+        </Grid>
+
+        <!-- CUERPO -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,24,20,24" Spacing="20">
+
+
+
+                <!-- Loading -->
+                <ActivityIndicator
+                    IsVisible="{Binding IsBusy}"
+                    IsRunning="{Binding IsBusy}"
+                    Color="{StaticResource Primary}"
+                    HorizontalOptions="Center" />
+
+                <!-- Error -->
+                <Frame IsVisible="{Binding HasError}"
+                       BackgroundColor="#FFEBEE" BorderColor="#FFCDD2"
+                       CornerRadius="10" Padding="14,10" HasShadow="False">
+                    <Label Text="{Binding ErrorMessage}"
+                           FontFamily="PlusJakartaSans" FontSize="13"
+                           TextColor="#C62828" />
+                </Frame>
+
+                <!-- Nombre -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Nombre"
+                           FontFamily="PlusJakartaSans" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    <Frame BackgroundColor="{StaticResource InputBackground}"
+                           BorderColor="{StaticResource Border}"
+                           CornerRadius="12" Padding="16,0" HasShadow="False">
+                        <Entry Text="{Binding Nombre}"
+                               Placeholder="Tu nombre"
+                               PlaceholderColor="{StaticResource TextSecondary}"
+                               FontFamily="PlusJakartaSans" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               HeightRequest="48" />
+                    </Frame>
+                </VerticalStackLayout>
+
+                <!-- Apellido -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Apellido"
+                           FontFamily="PlusJakartaSans" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    <Frame BackgroundColor="{StaticResource InputBackground}"
+                           BorderColor="{StaticResource Border}"
+                           CornerRadius="12" Padding="16,0" HasShadow="False">
+                        <Entry Text="{Binding Apellido}"
+                               Placeholder="Tu apellido"
+                               PlaceholderColor="{StaticResource TextSecondary}"
+                               FontFamily="PlusJakartaSans" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               HeightRequest="48" />
+                    </Frame>
+                </VerticalStackLayout>
+
+                <!-- Teléfono -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Teléfono"
+                           FontFamily="PlusJakartaSans" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    <Frame BackgroundColor="{StaticResource InputBackground}"
+                           BorderColor="{StaticResource Border}"
+                           CornerRadius="12" Padding="16,0" HasShadow="False">
+                        <Entry Text="{Binding Telefono}"
+                               Placeholder="Tu teléfono"
+                               PlaceholderColor="{StaticResource TextSecondary}"
+                               FontFamily="PlusJakartaSans" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               Keyboard="Telephone"
+                               HeightRequest="48" />
+                    </Frame>
+                </VerticalStackLayout>
+
+                <!-- Usuario (solo lectura) -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Usuario (solo lectura)"
+                           FontFamily="PlusJakartaSans" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource TextSecondary}" />
+                    <Frame BackgroundColor="{StaticResource Border}"
+                           BorderColor="{StaticResource Border}"
+                           CornerRadius="12" Padding="16,14" HasShadow="False">
+                        <Label Text="{Binding Login}"
+                               FontFamily="PlusJakartaSans" FontSize="15"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </Frame>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BOTÓN GUARDAR -->
+        <Grid Grid.Row="2" BackgroundColor="{StaticResource Surface}" Padding="20,12,20,32">
+            <Button
+                Text="Guardar cambios"
+                Command="{Binding GuardarCambiosCommand}"
+                BackgroundColor="{StaticResource Primary}"
+                TextColor="{StaticResource TextLight}"
+                FontFamily="PlusJakartaSans" FontAttributes="Bold"
+                FontSize="16" CornerRadius="12" HeightRequest="52" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

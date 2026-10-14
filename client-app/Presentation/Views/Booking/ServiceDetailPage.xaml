@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Booking"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Booking.ServiceDetailPage"
+             x:DataType="vm:ServiceDetailViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false">
+
+    <Grid RowDefinitions="*, Auto">
+        
+        <!-- Contenido Desplazable del Detalle -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="16, 12, 16, 24" Spacing="16">
+                
+                <!-- Barra Superior de Navegación con Botón Volver y Badge -->
+                <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center" Margin="0, 4, 0, 4">
+                    <!-- Botón Atrás Circular -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 20"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding VolverCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="←"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Título de Pantalla -->
+                    <Label Grid.Column="1"
+                           Text="Detalle del Ritual"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+
+                    <!-- Badge de Disponibilidad -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{StaticResource StatusConfirmadaBorder}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource StatusConfirmadaBg}"
+                            Padding="10, 4"
+                            VerticalOptions="Center">
+                        <Label Text="✓ Disponible"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource StatusConfirmadaText}" />
+                    </Border>
+                </Grid>
+
+                <!-- Indicador de Carga si el Servicio se está recuperando -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   HeightRequest="36"
+                                   WidthRequest="36"
+                                   HorizontalOptions="Center" />
+
+                <!-- Showcase / Hero Image del Servicio -->
+                <Border StrokeShape="RoundRectangle 20" 
+                        HeightRequest="220" 
+                        BackgroundColor="{StaticResource BackgroundSecondary}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1">
+                    <Grid>
+                        <!-- Imagen Real si existe -->
+                        <Image Source="{Binding Servicio.ImagenUrl}" 
+                               Aspect="AspectFill" 
+                               IsVisible="{Binding Servicio.TieneImagen}" />
+                        
+                        <!-- Fallback Visual Luxury si no hay imagen -->
+                        <Grid IsVisible="{Binding Servicio.NoTieneImagen}"
+                              BackgroundColor="{StaticResource SecondaryLight}">
+                            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="6">
+                                <Border StrokeShape="RoundRectangle 30"
+                                        BackgroundColor="{StaticResource Surface}"
+                                        WidthRequest="60"
+                                        HeightRequest="60"
+                                        Stroke="{StaticResource Border}"
+                                        StrokeThickness="1"
+                                        HorizontalOptions="Center">
+                                    <Label Text="🌸" FontSize="28" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Text="Shunshine Atelier" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}" 
+                                       HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Pill Flotante de Categoría sobre Hero -->
+                        <Border HorizontalOptions="Start" 
+                                VerticalOptions="End" 
+                                Margin="14"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="{StaticResource Surface}"
+                                Stroke="{StaticResource Border}"
+                                StrokeThickness="1"
+                                Padding="10, 4">
+                            <Label Text="{Binding Servicio.CategoriaNombre}" 
+                                   TextColor="{StaticResource Secondary}" 
+                                   FontAttributes="Bold" 
+                                   FontSize="11" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Título del Servicio -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Servicio.Nombre}" 
+                           Style="{StaticResource TitleLabelStyle}" 
+                           FontSize="24"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="Tratamiento profesional personalizado en salón"
+                           Style="{StaticResource CaptionLabelStyle}"
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
+
+                <!-- Métrica Resumen (3 Columnas con Divisores) -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="16, 12">
+                    <Grid ColumnDefinitions="*, Auto, *, Auto, *">
+                        <!-- Columna 0: Inversión -->
+                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="INVERSIÓN" 
+                                   FontSize="10" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   HorizontalOptions="Center" />
+                            <Label Text="{Binding Servicio.PrecioFormateado}" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Primary}" 
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                        <!-- Divisor 1 -->
+                        <BoxView Grid.Column="1" 
+                                 WidthRequest="1" 
+                                 Color="{StaticResource Border}" 
+                                 Margin="8, 2" />
+
+                        <!-- Columna 2: Duración -->
+                        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="DURACIÓN" 
+                                   FontSize="10" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   HorizontalOptions="Center" />
+                            <Label Text="{Binding Servicio.DuracionFormateada}" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextPrimary}" 
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                        <!-- Divisor 2 -->
+                        <BoxView Grid.Column="3" 
+                                 WidthRequest="1" 
+                                 Color="{StaticResource Border}" 
+                                 Margin="8, 2" />
+
+                        <!-- Columna 4: Modalidad -->
+                        <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="MODALIDAD" 
+                                   FontSize="10" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   HorizontalOptions="Center" />
+                            <Label Text="En Atelier" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Secondary}" 
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Descripción Completa del Servicio -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Acerca del Tratamiento" 
+                               Style="{StaticResource TitleLabelStyle}" 
+                               FontSize="16" 
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="{Binding Servicio.Descripcion}" 
+                               Style="{StaticResource BodyLabelStyle}"
+                               FontSize="14" 
+                               TextColor="{StaticResource TextSecondary}" 
+                               LineHeight="1.4" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Protocolo Paso a Paso del Servicio -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Protocolo de Atención Paso a Paso" 
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" />
+                        <Label Text="{Binding Servicio.Protocolo}" 
+                               FontSize="13" 
+                               TextColor="{StaticResource TextPrimary}" 
+                               LineHeight="1.4" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Recomendación Shushine y Consejos -->
+                <Border StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource StatusPendienteBg}"
+                        Stroke="{StaticResource StatusPendienteBorder}"
+                        StrokeThickness="1"
+                        Padding="14, 12">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12">
+                        <Label Grid.Column="0" Text="✨" FontSize="22" VerticalOptions="Start" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Recomendación del Atelier" 
+                                   FontAttributes="Bold" 
+                                   FontSize="13" 
+                                   TextColor="{StaticResource Warning}" />
+                            <Label Text="Por favor acude 5 minutos antes de la hora seleccionada para tu diagnóstico de bienvenida y disfrutar de una infusión de cortesía." 
+                                   FontSize="12" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   LineHeight="1.3" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Barra Fija Inferior de Reserva -->
+        <Border Grid.Row="1" 
+                BackgroundColor="{StaticResource Surface}" 
+                StrokeThickness="1"
+                Stroke="{StaticResource Border}"
+                Padding="20, 12">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="0">
+                    <Label Text="Inversión total" 
+                           Style="{StaticResource CaptionLabelStyle}" 
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="{Binding Servicio.PrecioFormateado}" 
+                           FontSize="22" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource Primary}" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1"
+                        Text="Reservar Cita ➔" 
+                        Command="{Binding ContinuarAReservaCommand}" 
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="48"
+                        Padding="24, 0"
+                        FontSize="15" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

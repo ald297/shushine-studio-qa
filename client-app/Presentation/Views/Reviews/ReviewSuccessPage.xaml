@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Reviews"
+    x:Class="ShushineStudio.Mobile.Presentation.Views.Reviews.ReviewSuccessPage"
+    x:DataType="vm:ReviewSuccessViewModel"
+    BackgroundColor="{StaticResource Background}"
+    Shell.NavBarIsVisible="false"
+    Title="Reseña Exitosa">
+
+    <Grid RowDefinitions="*,Auto" Padding="24,52,24,32">
+
+        <!-- CONTENIDO CENTRAL -->
+        <VerticalStackLayout Grid.Row="0" VerticalOptions="Center" Spacing="24" HorizontalOptions="Center">
+
+            <!-- ICONO ÉXITO -->
+            <Frame
+                WidthRequest="88" HeightRequest="88"
+                CornerRadius="44"
+                BackgroundColor="#E8F5E9"
+                BorderColor="#A5D6A7"
+                Padding="0"
+                HorizontalOptions="Center"
+                HasShadow="True">
+                <Label
+                    Text="✓"
+                    FontSize="42"
+                    FontAttributes="Bold"
+                    TextColor="#2E7D32"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+            </Frame>
+
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Label
+                    Text="¡Gracias por tu Reseña!"
+                    FontFamily="PlayfairDisplay"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}"
+                    HorizontalTextAlignment="Center" />
+
+                <Label
+                    Text="Tu valoración y testimonio ayudan a preservar los rituales de excelencia de nuestras especialistas en Shunshine Studio."
+                    FontFamily="PlusJakartaSans"
+                    FontSize="13"
+                    TextColor="{StaticResource TextSecondary}"
+                    HorizontalTextAlignment="Center"
+                    LineHeight="1.3" />
+            </VerticalStackLayout>
+
+            <!-- RESUMEN -->
+            <Frame
+                BackgroundColor="{StaticResource Surface}"
+                BorderColor="{StaticResource Border}"
+                CornerRadius="16"
+                Padding="20,16"
+                HorizontalOptions="Fill"
+                HasShadow="False">
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Label
+                        Text="{Binding ServicioNombre}"
+                        FontFamily="PlayfairDisplay"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Primary}"
+                        HorizontalTextAlignment="Center" />
+
+                    <Label
+                        Text="{Binding EstilistaNombre, StringFormat='Atendida por {0}'}"
+                        FontFamily="PlusJakartaSans"
+                        FontSize="12"
+                        TextColor="{StaticResource TextSecondary}"
+                        HorizontalTextAlignment="Center" />
+
+                    <Label
+                        Text="{Binding EstrellasTexto}"
+                        FontSize="24"
+                        TextColor="{StaticResource Secondary}"
+                        HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+
+        <!-- BOTONES -->
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+            <Button
+                Text="Ver Mis Reseñas"
+                Command="{Binding IrAMisResenasCommand}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HeightRequest="50"
+                FontSize="15"
+                CornerRadius="14" />
+
+            <Button
+                Text="Volver al Catálogo"
+                Command="{Binding IrAInicioCommand}"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource Secondary}"
+                FontSize="14"
+                FontFamily="PlusJakartaSans"
+                FontAttributes="Bold"
+                HeightRequest="44" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

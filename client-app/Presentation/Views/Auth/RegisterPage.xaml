@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Auth"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Auth.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false"
+             Shell.TabBarIsVisible="false">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24, 16" Spacing="16" MaximumWidthRequest="440" HorizontalOptions="Center">
+
+            <!-- 1. BARRA SUPERIOR: Botón Volver + Emblema del Salón -->
+            <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center" Margin="0, 4, 0, 8">
+                <!-- Botón Circular Volver -->
+                <Border Grid.Column="0"
+                        StrokeShape="RoundRectangle 20"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        WidthRequest="40"
+                        HeightRequest="40">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateBackToLoginCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="←"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+
+                <!-- Mini Emblema de la Marca (Shunshine) -->
+                <Border Grid.Column="2"
+                        StrokeShape="RoundRectangle 9999"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        Padding="10, 4">
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Label Text="✨" FontSize="12" VerticalOptions="Center" />
+                        <Label Text="SHUNSHINE"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Secondary}"
+                               CharacterSpacing="1.5"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- 2. ENCABEZADO EDITORIAL (Stitch: Atelier de Belleza / Crear cuenta) -->
+            <VerticalStackLayout Spacing="3" Margin="0, 4, 0, 4">
+                <Label Text="ATELIER DE BELLEZA"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       CharacterSpacing="2"
+                       TextColor="{StaticResource Secondary}" />
+
+                <Label Text="Crear cuenta"
+                       Style="{StaticResource TitleLabelStyle}"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}" />
+
+                <Label Text="Crea tu cuenta y empieza a reservar tus citas exclusivas."
+                       Style="{StaticResource SubheaderLabelStyle}"
+                       FontSize="13"
+                       TextColor="{StaticResource TextSecondary}"
+                       Margin="0, 2, 0, 0" />
+            </VerticalStackLayout>
+
+            <!-- 3. TARJETA DEL FORMULARIO DE REGISTRO -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    Padding="20, 18">
+                <VerticalStackLayout Spacing="0">
+
+                    <!-- Banner de Error Contextual -->
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="{StaticResource StatusCanceladaBorder}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource StatusCanceladaBg}"
+                            Padding="12, 10"
+                            Margin="0, 0, 0, 14"
+                            IsVisible="{Binding HasError}">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="⚠️" FontSize="14" VerticalOptions="Center" />
+                            <Label Text="{Binding ErrorMessage}"
+                                   TextColor="{StaticResource Error}"
+                                   FontSize="12"
+                                   VerticalOptions="Center"
+                                   LineBreakMode="WordWrap" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Campo: Nombre Completo -->
+                    <components:CustomEntry LabelText="Nombre completo *"
+                                            Placeholder="Ingresa tu nombre completo"
+                                            Text="{Binding Nombre}"
+                                            ReturnType="Next"
+                                            LeadingIcon="user.svg" />
+
+                    <!-- Campo: Correo Electrónico -->
+                    <components:CustomEntry LabelText="Correo electrónico *"
+                                            Placeholder="ejemplo@correo.com"
+                                            Text="{Binding Email}"
+                                            Keyboard="Email"
+                                            ReturnType="Next"
+                                            LeadingIcon="mail.svg" />
+
+                    <!-- Campo: Teléfono / WhatsApp -->
+                    <components:CustomEntry LabelText="Teléfono / WhatsApp"
+                                            Placeholder="7000-0000"
+                                            Text="{Binding Telefono}"
+                                            Keyboard="Telephone"
+                                            ReturnType="Next" />
+
+                    <!-- Campo: Contraseña -->
+                    <components:CustomEntry LabelText="Contraseña (mínimo 6 caracteres) *"
+                                            Placeholder="Crea una contraseña segura"
+                                            Text="{Binding Password}"
+                                            IsPassword="{Binding IsPasswordHidden}"
+                                            IsPasswordToggleEnabled="True"
+                                            ReturnType="Next"
+                                            LeadingIcon="lock.svg" />
+
+                    <!-- Campo: Confirmar Contraseña -->
+                    <components:CustomEntry LabelText="Confirmar contraseña *"
+                                            Placeholder="Repite tu contraseña"
+                                            Text="{Binding ConfirmPassword}"
+                                            IsPassword="{Binding IsPasswordHidden}"
+                                            IsPasswordToggleEnabled="True"
+                                            ReturnType="Done"
+                                            LeadingIcon="lock.svg" />
+
+                    <!-- Checkbox de Términos y Condiciones -->
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" Margin="0, 4, 0, 18">
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding AcceptTerms}"
+                                  Color="{StaticResource Primary}"
+                                  VerticalOptions="Start" />
+                        <Label Grid.Column="1"
+                               FontSize="12"
+                               TextColor="{StaticResource TextSecondary}"
+                               VerticalOptions="Center"
+                               LineBreakMode="WordWrap">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Acepto los " />
+                                    <Span Text="términos y condiciones"
+                                          TextColor="{StaticResource Primary}"
+                                          FontAttributes="Bold" />
+                                    <Span Text=" de reserva y la política de privacidad de Shunshine Studio." />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Grid>
+
+                    <!-- Botón Principal: Crear cuenta -->
+                    <Button Text="Crear cuenta"
+                            Command="{Binding RegisterCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            HeightRequest="50"
+                            CornerRadius="16" />
+
+                    <!-- Indicador de Carga Reactivo -->
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}"
+                                       HeightRequest="30"
+                                       Margin="0, 12, 0, 0" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 4. PIE DE PANTALLA: Retorno a Login -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="6" Margin="0, 8, 0, 20">
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateBackToLoginCommand}" />
+                </HorizontalStackLayout.GestureRecognizers>
+                <Label Text="¿Ya tienes una cuenta?"
+                       TextColor="{StaticResource TextSecondary}"
+                       FontSize="13" />
+                <Label Text="Iniciar sesión"
+                       TextColor="{StaticResource Primary}"
+                       FontAttributes="Bold"
+                       FontSize="13" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

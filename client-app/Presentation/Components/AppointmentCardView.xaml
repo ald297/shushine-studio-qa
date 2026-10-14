@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Components.AppointmentCardView"
+             x:Name="ThisAppointmentCard">
+    <Border StrokeShape="RoundRectangle 16"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            BackgroundColor="{StaticResource Surface}"
+            Padding="16"
+            Margin="0,0,0,12">
+        <VerticalStackLayout Spacing="12">
+            <!-- Fila Superior: Fecha/Hora y Badge de Estado -->
+            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
+                    <Label Text="📅" FontSize="14" VerticalOptions="Center" />
+                    <Label Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=DateText}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           VerticalOptions="Center" />
+                    <Label Text="•" FontSize="13" TextColor="{StaticResource TextSecondary}" VerticalOptions="Center" />
+                    <Label Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=TimeText}"
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <!-- Estado de la Cita -->
+                <components:StatusBadgeView Grid.Column="1"
+                                            Status="{Binding Source={x:Reference ThisAppointmentCard}, Path=Status}" />
+            </Grid>
+
+            <!-- Línea Divisoria Sutil -->
+            <BoxView HeightRequest="1" Color="{StaticResource Border}" />
+
+            <!-- Servicio y Especialista -->
+            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Label Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=ServiceName}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="👤" FontSize="12" TextColor="{StaticResource TextSecondary}" />
+                        <Label Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=StylistName, TargetNullValue='Especialista asignado'}"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Precio -->
+                <Label Grid.Column="1"
+                       Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=PriceText}"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Botón de Acción Opcional -->
+            <Button Text="{Binding Source={x:Reference ThisAppointmentCard}, Path=ActionText}"
+                    Command="{Binding Source={x:Reference ThisAppointmentCard}, Path=ActionCommand}"
+                    CommandParameter="{Binding Source={x:Reference ThisAppointmentCard}, Path=ActionCommandParameter}"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    HeightRequest="42"
+                    FontSize="14"
+                    CornerRadius="12"
+                    IsVisible="{Binding Source={x:Reference ThisAppointmentCard}, Path=ActionCommand, Converter={x:Null}}" />
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

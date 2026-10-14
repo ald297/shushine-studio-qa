@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShushineStudio.Mobile.Presentation.Components.StatusBadgeView"
+             x:Name="ThisBadge">
+    <Border x:Name="BadgeContainer"
+            StrokeShape="RoundRectangle 9999"
+            StrokeThickness="1"
+            Padding="10,4"
+            HorizontalOptions="Start"
+            VerticalOptions="Center">
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <!-- Dot de estado de 6px -->
+            <BoxView x:Name="StatusDot"
+                     WidthRequest="6"
+                     HeightRequest="6"
+                     CornerRadius="3"
+                     VerticalOptions="Center" />
+            <!-- Texto del estado -->
+            <Label x:Name="StatusLabel"
+                   Text="{Binding Source={x:Reference ThisBadge}, Path=Status, TargetNullValue='Pendiente'}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>

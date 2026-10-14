@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Appointments"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Appointments.AppointmentDetailPage"
+             x:DataType="vm:AppointmentDetailViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="False"
+             Title="Detalle de Cita">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Encabezado con Botón Volver -->
+        <components:LotusHeaderView Grid.Row="0"
+                                    Title="Detalle de Cita"
+                                    Subtitle="Información y gestión de tu reserva"
+                                    ShowBackButton="True"
+                                    BackCommand="{Binding VolverCommand}" />
+
+        <!-- Contenido Desplazable -->
+        <ScrollView Grid.Row="1" Padding="20,12,20,32">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- 1. Estado y Código de Cita -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <components:StatusBadgeView Grid.Column="0"
+                                                        Status="{Binding Reserva.Estado}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Reserva.CodigoReserva}"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Secondary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <Label Text="{Binding Reserva.ServicioNombre}"
+                               FontFamily="PlayfairDisplayBold"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}" />
+
+                        <Label Text="{Binding Reserva.ServiciosResumen}"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. Fecha, Horario y Especialista -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <!-- Fecha y Horario -->
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                    WidthRequest="52"
+                                    HeightRequest="52"
+                                    VerticalOptions="Center">
+                                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="0">
+                                    <Label Text="📅" FontSize="20" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Reserva.FechaHoraInicio, StringFormat='{0:dddd, dd \'de\' MMMM yyyy}'}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding Reserva.HorarioTexto, StringFormat='⏰ {0}'}"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Línea Divisoria -->
+                        <BoxView HeightRequest="1" Color="{StaticResource Border}" />
+
+                        <!-- Especialista Asignada -->
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 24"
+                                    BackgroundColor="{StaticResource BackgroundSecondary}"
+                                    WidthRequest="48"
+                                    HeightRequest="48"
+                                    VerticalOptions="Center">
+                                <Label Text="👤" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Reserva.EstilistaNombre, TargetNullValue='Especialista asignada'}"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="Profesional del Salón"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Secondary}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 3. Información Económica -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Resumen Financiero"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{StaticResource TextSecondary}" />
+
+                        <!-- Subtotal si está registrado -->
+                        <Grid ColumnDefinitions="*, Auto" IsVisible="{Binding Reserva.Subtotal, Converter={x:Null}}">
+                            <Label Grid.Column="0" Text="Subtotal del Servicio" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                            <Label Grid.Column="1" Text="{Binding Reserva.SubtotalFormateado}" FontSize="13" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+
+                        <!-- Total -->
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="Total Acordado"
+                                   FontAttributes="Bold"
+                                   FontSize="15"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Reserva.TotalFormateado}"
+                                   FontFamily="PlayfairDisplayBold"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{StaticResource Border}" Margin="0,2" />
+
+                        <!-- Método y Estado de Pago -->
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Método de pago:" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                <Label Text="{Binding Reserva.MetodoPagoPreferente}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Estado de cobro:" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                <Label Text="{Binding Reserva.EstadoPago}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 4. Notas del Cliente (Opcional) -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        Padding="16"
+                        IsVisible="{Binding TieneNotas}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Indicaciones Especiales del Cliente"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Secondary}" />
+                        <Label Text="{Binding Reserva.Notas}"
+                               FontSize="13"
+                               TextColor="{StaticResource TextPrimary}"
+                               FontAttributes="Italic" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Indicador de Carga al Operar -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   HorizontalOptions="Center" />
+
+                <!-- 5. Acciones Disponibles -->
+                <VerticalStackLayout Spacing="10" IsVisible="{Binding IsNotBusy}">
+                    <!-- Si la cita está Activa (Pendiente o Confirmada) -->
+                    <VerticalStackLayout Spacing="10" IsVisible="{Binding PuedeCancelar}">
+                        <Button Text="Reprogramar Cita"
+                                Command="{Binding ReprogramarCitaCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                HeightRequest="48"
+                                FontSize="14"
+                                CornerRadius="12" />
+
+                        <Button Text="Cancelar Cita"
+                                Command="{Binding CancelarCitaCommand}"
+                                HeightRequest="48"
+                                FontSize="14"
+                                CornerRadius="12"
+                                BackgroundColor="#FBEBEB"
+                                TextColor="#8E2323"
+                                BorderColor="#F2B8B8"
+                                BorderWidth="1" />
+                    </VerticalStackLayout>
+
+                    <!-- Si la cita está Terminada / Completada -->
+                    <Button Text="★ Calificar Servicio"
+                            Command="{Binding CalificarServicioCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            HeightRequest="50"
+                            FontSize="15"
+                            CornerRadius="14"
+                            IsVisible="{Binding PuedeCalificar}" />
+
+                    <!-- Si la cita está Terminada o Cancelada -->
+                    <Button Text="Volver a Agendar Servicio"
+                            Command="{Binding ReprogramarCitaCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HeightRequest="50"
+                            FontSize="15"
+                            CornerRadius="14"
+                            IsVisible="{Binding PuedeCancelar, Converter={x:Null}}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding PuedeCancelar}" Value="True">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

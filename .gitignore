@@ -1,0 +1,25 @@
+# Build output & binaries
+bin/
+obj/
+target/
+*.apk
+*.aab
+*.class
+*.jar
+*.war
+
+# IDE & OS
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# Dependencies & temporary
+node_modules/
+dist/
+.vercel/
+*.log

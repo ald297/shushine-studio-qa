@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShushineStudio.Mobile.Presentation.Components.LotusHeaderView"
+             x:Name="ThisHeader">
+    <Grid ColumnDefinitions="Auto,*,Auto"
+          Padding="16,12"
+          BackgroundColor="{StaticResource Background}">
+
+        <!-- Botón Atrás (Opcional) -->
+        <Border Grid.Column="0"
+                IsVisible="{Binding Source={x:Reference ThisHeader}, Path=ShowBackButton}"
+                StrokeShape="RoundRectangle 20"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="1"
+                BackgroundColor="{StaticResource Surface}"
+                WidthRequest="40"
+                HeightRequest="40"
+                Margin="0,0,12,0"
+                VerticalOptions="Center">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Source={x:Reference ThisHeader}, Path=BackCommand}" />
+            </Border.GestureRecognizers>
+            <Label Text="←"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Border>
+
+        <!-- Bloque Central: Saludo y Título -->
+        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+            <!-- Saludo Contextual (ej: 'Bienvenida, Camila') -->
+            <Label Text="{Binding Source={x:Reference ThisHeader}, Path=Greeting}"
+                   Style="{StaticResource CaptionLabelStyle}"
+                   IsVisible="{Binding Source={x:Reference ThisHeader}, Path=Greeting, Converter={x:Null}}" />
+            <!-- Título Principal -->
+            <Label Text="{Binding Source={x:Reference ThisHeader}, Path=Title}"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"
+                   LineBreakMode="TailTruncation" />
+        </VerticalStackLayout>
+
+        <!-- Bloque Derecho: Avatar / Notificaciones -->
+        <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+            <!-- Botón de Notificaciones -->
+            <Grid IsVisible="{Binding Source={x:Reference ThisHeader}, Path=ShowNotificationButton}"
+                  WidthRequest="40"
+                  HeightRequest="40">
+                <Border StrokeShape="RoundRectangle 20"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        WidthRequest="40"
+                        HeightRequest="40">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding Source={x:Reference ThisHeader}, Path=NotificationCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="🔔"
+                           FontSize="16"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+                <!-- Dot Indicador de Notificación no leída -->
+                <BoxView WidthRequest="8"
+                         HeightRequest="8"
+                         CornerRadius="4"
+                         Color="{StaticResource Primary}"
+                         HorizontalOptions="End"
+                         VerticalOptions="Start"
+                         Margin="0,4,4,0"
+                         IsVisible="{Binding Source={x:Reference ThisHeader}, Path=HasUnreadNotifications}" />
+            </Grid>
+
+            <!-- Avatar del Usuario / Logo Loto -->
+            <Border IsVisible="{Binding Source={x:Reference ThisHeader}, Path=ShowAvatar}"
+                    StrokeShape="RoundRectangle 20"
+                    Stroke="{StaticResource Secondary}"
+                    StrokeThickness="1.5"
+                    BackgroundColor="{StaticResource BackgroundSecondary}"
+                    WidthRequest="40"
+                    HeightRequest="40">
+                <Label Text="{Binding Source={x:Reference ThisHeader}, Path=AvatarText}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentView>

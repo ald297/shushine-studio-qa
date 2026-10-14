@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Booking"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Booking.BookingConfirmationPage"
+             x:DataType="vm:BookingConfirmationViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20, 24, 20, 32" Spacing="20" VerticalOptions="Center">
+            
+            <!-- Icono Éxito y Felicitación -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center" Margin="0, 10, 0, 0">
+                <Border StrokeShape="RoundRectangle 42" 
+                        HeightRequest="84" 
+                        WidthRequest="84"
+                        Stroke="{StaticResource StatusConfirmadaBorder}"
+                        StrokeThickness="2"
+                        BackgroundColor="{StaticResource StatusConfirmadaBg}"
+                        HorizontalOptions="Center">
+                    <Label Text="✓" 
+                           FontSize="40" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource StatusConfirmadaText}" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" />
+                </Border>
+
+                <Label Text="¡Reserva Confirmada!" 
+                       Style="{StaticResource TitleLabelStyle}" 
+                       FontSize="24" 
+                       HorizontalOptions="Center" 
+                       HorizontalTextAlignment="Center" />
+
+                <Label Text="Tu cita ha sido agendada con éxito en Shunshine Studio" 
+                       FontSize="13" 
+                       TextColor="{StaticResource TextSecondary}" 
+                       HorizontalOptions="Center" 
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+
+            <!-- Comprobante Oficial Tipo Ticket -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20">
+                <VerticalStackLayout Spacing="14">
+                    
+                    <!-- Código Único si fue provisto por la API -->
+                    <Border StrokeShape="RoundRectangle 12" 
+                            BackgroundColor="{StaticResource BackgroundSecondary}" 
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            Padding="16, 10"
+                            HorizontalOptions="Fill"
+                            IsVisible="{Binding TieneCodigo}">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="IDENTIFICADOR DE CITA" 
+                                   FontSize="10" 
+                                   TextColor="{StaticResource Secondary}" 
+                                   FontAttributes="Bold" 
+                                   HorizontalOptions="Center" />
+                            <Label Text="{Binding Codigo}" 
+                                   FontSize="22" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Primary}" 
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <BoxView HeightRequest="1" Color="{StaticResource Border}" Margin="0, 2" IsVisible="{Binding TieneCodigo}" />
+
+                    <!-- Detalles del Tratamiento -->
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="TRATAMIENTO" 
+                               FontSize="10" 
+                               TextColor="{StaticResource TextSecondary}" 
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding ServicioNombre}" 
+                               FontSize="15" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+
+                    <!-- Profesional Asignado -->
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="PROFESIONAL ASIGNADA" 
+                               FontSize="10" 
+                               TextColor="{StaticResource TextSecondary}" 
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding EstilistaNombre}" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextPrimary}" />
+                    </VerticalStackLayout>
+
+                    <!-- Fecha y Horario en 2 Columnas -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="3">
+                            <Label Text="FECHA" 
+                                   FontSize="10" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding Fecha, StringFormat='📅 {0}'}" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextPrimary}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="3">
+                            <Label Text="HORARIO" 
+                                   FontSize="10" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding Hora, StringFormat='⏰ {0}'}" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Primary}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{StaticResource Border}" Margin="0, 2" />
+
+                    <!-- Total Real del Servicio -->
+                    <Grid ColumnDefinitions="*, Auto">
+                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                            <Label Text="Importe a cancelar en salón:" 
+                                   FontSize="12" 
+                                   TextColor="{StaticResource TextSecondary}" />
+                            <Label Text="Pago en recepción" 
+                                   FontSize="10" 
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" 
+                               Text="{Binding Total, StringFormat='${0}'}" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource Primary}" 
+                               VerticalOptions="Center" />
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Distintivo de Registro en Agenda -->
+            <Border StrokeShape="RoundRectangle 12" 
+                    BackgroundColor="{StaticResource StatusConfirmadaBg}" 
+                    Stroke="{StaticResource StatusConfirmadaBorder}"
+                    StrokeThickness="1"
+                    Padding="14, 8"
+                    HorizontalOptions="Center">
+                <HorizontalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label Text="✨" FontSize="12" VerticalOptions="Center" />
+                    <Label Text="Cita registrada en agenda del salón" 
+                           FontSize="12" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource StatusConfirmadaText}" 
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Botones de Acción Posterior -->
+            <VerticalStackLayout Spacing="12" Margin="0, 4, 0, 0">
+                <Button Text="Ver en Mis Citas" 
+                        Command="{Binding VerEnMisCitasCommand}" 
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                <Button Text="Volver al Catálogo" 
+                        Command="{Binding VolverAlInicioCommand}" 
+                        Style="{StaticResource SecondaryButtonStyle}" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

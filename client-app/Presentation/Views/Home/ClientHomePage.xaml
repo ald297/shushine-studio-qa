@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Home"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Home.ClientHomePage"
+             x:DataType="vm:ClientHomeViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="False"
+             Title="Inicio">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- 1. Encabezado oficial -->
+            <components:LotusHeaderView
+                Title="Shunshine Studio"
+                Subtitle="Tu espacio de belleza y bienestar"
+                ShowBackButton="False"
+                ShowNotificationButton="True"
+                HasUnreadNotifications="False"
+                ShowAvatar="False" />
+
+            <!-- 2. Saludo personalizado -->
+            <Border Margin="16,8,16,12"
+                    Padding="20,16"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Saludo}"
+                           FontFamily="PlayfairDisplayBold"
+                           FontSize="22"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="{Binding NombreCliente, StringFormat='Es un placer tenerte aquí, {0}'}"
+                           FontFamily="PlusJakartaSans"
+                           FontSize="14"
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 3. Botón CTA Principal: Agendar una cita -->
+            <Border Margin="16,0,16,16"
+                    Padding="0"
+                    BackgroundColor="{StaticResource Primary}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding IrAAgendarCitaCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="18,14">
+                    <Border Grid.Column="0"
+                            WidthRequest="40" HeightRequest="40"
+                            StrokeShape="RoundRectangle 20"
+                            BackgroundColor="#33FFFFFF"
+                            Stroke="Transparent">
+                        <Label Text="✨" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Agendar una cita"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="16"
+                               TextColor="White" />
+                        <Label Text="Reserva tu ritual exclusivo de belleza"
+                               FontFamily="PlusJakartaSans"
+                               FontSize="12"
+                               TextColor="#E6FFFFFF" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="›"
+                           FontSize="24" TextColor="White"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- 4. Sección: Tu Próxima Cita -->
+            <Label Text="Tu Próxima Cita"
+                   FontFamily="PlusJakartaSansSemiBold"
+                   FontSize="15"
+                   TextColor="{StaticResource TextPrimary}"
+                   Margin="16,4,16,8" />
+
+            <!-- Tarjeta con cita existente -->
+            <Border IsVisible="{Binding TieneProximaCita}"
+                    Margin="16,0,16,16"
+                    Padding="16"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding IrACitasCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Image Source="calendar.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+                            <Label Text="{Binding ProximaCitaFecha}"
+                                   FontFamily="PlusJakartaSansSemiBold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+                            <Label Text="•" TextColor="{StaticResource TextSecondary}" VerticalOptions="Center" />
+                            <Label Text="{Binding ProximaCitaHora}"
+                                   FontFamily="PlusJakartaSans"
+                                   FontSize="13"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Border Grid.Column="1"
+                                Padding="8,3"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="{Binding ProximaCitaEstadoColor}"
+                                Stroke="Transparent">
+                            <Label Text="{Binding ProximaCitaEstado}"
+                                   FontSize="10"
+                                   FontFamily="PlusJakartaSansSemiBold"
+                                   TextColor="White" />
+                        </Border>
+                    </Grid>
+
+                    <BoxView HeightRequest="1" BackgroundColor="{StaticResource Border}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="{Binding ProximaCitaServicio}"
+                                   FontFamily="PlusJakartaSansSemiBold"
+                                   FontSize="15"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="{Binding ProximaCitaEstilista, StringFormat='Con {0}'}"
+                                   FontFamily="PlusJakartaSans"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="Ver detalle ›"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="12"
+                               TextColor="{StaticResource Primary}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Tarjeta cuando no hay cita agendada -->
+            <Border IsVisible="{Binding NoTieneProximaCita}"
+                    Margin="16,0,16,16"
+                    Padding="16,14"
+                    BackgroundColor="{StaticResource SurfaceVariant}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Grid.Column="0" Text="📅" FontSize="24" VerticalOptions="Center" Margin="0,0,12,0" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Sin citas pendientes"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="¿Deseas consentirte? Agenda tu próxima visita."
+                               FontFamily="PlusJakartaSans"
+                               FontSize="12"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="2"
+                            Text="Ver citas"
+                            Command="{Binding IrACitasCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"
+                            FontFamily="PlusJakartaSansSemiBold"
+                            FontSize="12"
+                            Padding="8,0"
+                            HeightRequest="36" />
+                </Grid>
+            </Border>
+
+            <!-- 5. Sección: Accesos Rápidos (Mis Citas, Solicitudes, Chat) -->
+            <Label Text="Gestión &amp; Consultas"
+                   FontFamily="PlusJakartaSansSemiBold"
+                   FontSize="15"
+                   TextColor="{StaticResource TextPrimary}"
+                   Margin="16,4,16,8" />
+
+            <Grid ColumnDefinitions="*,*,*"
+                  Margin="16,0,16,16"
+                  ColumnSpacing="10">
+
+                <!-- Mis Citas -->
+                <Border Grid.Column="0"
+                        Padding="12,14"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding IrACitasCommand}" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Image Source="calendar.svg" HeightRequest="26" WidthRequest="26" HorizontalOptions="Center" />
+                        <Label Text="Mis Citas"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="12"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Solicitudes y Cotizaciones -->
+                <Border Grid.Column="1"
+                        Padding="12,14"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding IrASolicitudesCommand}" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Image Source="edit_pen.svg" HeightRequest="26" WidthRequest="26" HorizontalOptions="Center" />
+                        <Label Text="Solicitudes"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="12"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Chat Atelier -->
+                <Border Grid.Column="2"
+                        Padding="12,14"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding IrAChatCommand}" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Image Source="chat.svg" HeightRequest="26" WidthRequest="26" HorizontalOptions="Center" />
+                        <Label Text="Chat"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="12"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
+
+            <!-- 6. Sección: Explorar Atelier (Servicios y Productos) -->
+            <Label Text="Explorar Atelier"
+                   FontFamily="PlusJakartaSansSemiBold"
+                   FontSize="15"
+                   TextColor="{StaticResource TextPrimary}"
+                   Margin="16,4,16,8" />
+
+            <Grid ColumnDefinitions="*,*"
+                  Margin="16,0,16,16"
+                  ColumnSpacing="12">
+
+                <!-- Explorar Servicios -->
+                <Border Grid.Column="0"
+                        Padding="14"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding IrACatalogoCommand}" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="8">
+                        <Border WidthRequest="40" HeightRequest="40"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#FFF0F4"
+                                Stroke="Transparent"
+                                HorizontalOptions="Start">
+                            <Image Source="scissors.svg" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Label Text="Servicios"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="Tratamientos y rituales de autor"
+                               FontFamily="PlusJakartaSans"
+                               FontSize="11"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Explorar Productos -->
+                <Border Grid.Column="1"
+                        Padding="14"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding IrAProductosCommand}" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="8">
+                        <Border WidthRequest="40" HeightRequest="40"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#F0F4FF"
+                                Stroke="Transparent"
+                                HorizontalOptions="Start">
+                            <Label Text="🛍" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Label Text="Productos"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="Cuidado capilar y cosmética exclusiva"
+                               FontFamily="PlusJakartaSans"
+                               FontSize="11"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
+
+            <!-- 7. Banner institucional -->
+            <Border Margin="16,8,16,28"
+                    Padding="20,16"
+                    BackgroundColor="#FFF5F7"
+                    Stroke="#F7CAD3"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="✨ Shunshine Studio"
+                           FontFamily="PlayfairDisplaySemiBold"
+                           FontSize="16"
+                           TextColor="{StaticResource Primary}" />
+                    <Label Text="Atelier de belleza de autor. Rituales exclusivos diseñados para realzar tu esencia natural."
+                           FontFamily="PlusJakartaSans"
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

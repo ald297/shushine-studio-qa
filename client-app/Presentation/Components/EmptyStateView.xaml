@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShushineStudio.Mobile.Presentation.Components.EmptyStateView"
+             x:Name="ThisEmptyState">
+    <VerticalStackLayout Spacing="16"
+                         Padding="32"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center">
+        <!-- Contenedor del Icono/Ilustración Circular -->
+        <Border StrokeShape="RoundRectangle 40"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="1"
+                BackgroundColor="{StaticResource BackgroundSecondary}"
+                WidthRequest="80"
+                HeightRequest="80"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                <Image Source="{Binding Source={x:Reference ThisEmptyState}, Path=IconSource}"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       IsVisible="{Binding Source={x:Reference ThisEmptyState}, Path=IconSource, Converter={x:Null}}" />
+                <Label Text="{Binding Source={x:Reference ThisEmptyState}, Path=IconEmoji}"
+                       FontSize="32"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Título en Tipografía Editorial -->
+        <Label Text="{Binding Source={x:Reference ThisEmptyState}, Path=Title}"
+               Style="{StaticResource TitleLabelStyle}"
+               FontSize="20"
+               HorizontalTextAlignment="Center" />
+
+        <!-- Descripción Amigable -->
+        <Label Text="{Binding Source={x:Reference ThisEmptyState}, Path=Description}"
+               Style="{StaticResource SubheaderLabelStyle}"
+               FontSize="14"
+               HorizontalTextAlignment="Center"
+               LineHeight="1.3" />
+
+        <!-- Botón de Acción Principal (Opcional) -->
+        <Button Text="{Binding Source={x:Reference ThisEmptyState}, Path=ActionText}"
+                Command="{Binding Source={x:Reference ThisEmptyState}, Path=ActionCommand}"
+                IsVisible="{Binding Source={x:Reference ThisEmptyState}, Path=IsActionVisible}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HeightRequest="46"
+                Padding="24,0"
+                Margin="0,8,0,0"
+                HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentView>

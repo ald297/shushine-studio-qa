@@ -1,0 +1,97 @@
+# ==============================================================================
+# PIPELINE DE ASEGURAMIENTO DE CALIDAD Y PRUEBAS CONTINUAS (CI/CD)
+# Proyecto: Shushine Studio — Ecosistema Omnicanal (Organización: lalafaro6)
+# Estándares: ISO/IEC/IEEE 29119-3 / IEEE 829 / IEEE 1008
+# ==============================================================================
+
+name: $(Date:yyyyMMdd)$(Rev:.r)-QA-ShushineStudio
+
+# Desencadenadores manuales o por cambio en ramas principales
+trigger:
+  branches:
+    include:
+      - main
+      - master
+  paths:
+    exclude:
+      - 'README.md'
+      - 'docs/*.pdf'
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  MAVEN_OPTS: '-Dmaven.repo.local=$(Pipeline.Workspace)/.m2/repository'
+
+stages:
+  # ----------------------------------------------------------------------------
+  # ETAPA 1: PRUEBAS UNITARIAS DE BACKEND (CAJA BLANCA - JUNIT 5 + MOCKITO)
+  # ----------------------------------------------------------------------------
+  - stage: UnitTesting
+    displayName: 'Nivel 1: Pruebas Unitarias de Código (JUnit 5 + Mockito)'
+    jobs:
+      - job: BackendTests
+        displayName: 'Ejecución de 24 Pruebas Unitarias de Lógica y Seguridad'
+        steps:
+          - task: JavaToolInstaller@0
+            displayName: 'Configurar JDK 21 LTS'
+            inputs:
+              versionSpec: '21'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - task: Maven@4
+            displayName: 'Ejecutar Pruebas Maven (CitaConcurrencia, JwtService, etc.)'
+            inputs:
+              mavenPomFile: 'backend-api/pom.xml'
+              goals: 'clean test'
+              options: '-B --no-transfer-progress'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.21'
+              jdkArchitectureOption: 'x64'
+
+          - task: PublishTestResults@2
+            displayName: 'Publicar Tablero de Resultados de Pruebas Unitarias'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)/backend-api'
+              testRunTitle: 'Shushine Studio - Suite Unitaria de Backend (ISO 29119-4)'
+
+  # ----------------------------------------------------------------------------
+  # ETAPA 2: EMPAQUETADO Y PUBLICACIÓN DE MATRICES Y ARTEFACTOS QA
+  # ----------------------------------------------------------------------------
+  - stage: QADeliverables
+    displayName: 'Nivel 2 y 3: Publicación de Entregables de Calidad'
+    dependsOn: UnitTesting
+    condition: succeeded()
+    jobs:
+      - job: PackageTestPlans
+        displayName: 'Empaquetar Matrices Formales IEEE 829 y Plantillas Excel'
+        steps:
+          - task: CopyFiles@2
+            displayName: 'Consolidar Entregables Formales de Pruebas'
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)'
+              Contents: |
+                *.xlsx
+                docs/**
+                schema.sql
+                dashboard.html
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/QA_Entregables_STP'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publicar Artefacto de Pruebas en Azure DevOps'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/QA_Entregables_STP'
+              ArtifactName: 'QA-Entregables-STP-SHU-2026'
+              publishLocation: 'Container'

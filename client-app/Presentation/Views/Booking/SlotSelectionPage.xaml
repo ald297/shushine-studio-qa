@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Booking"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Booking.SlotSelectionPage"
+             x:DataType="vm:SlotSelectionViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false">
+
+    <Grid RowDefinitions="*, Auto">
+        
+        <!-- Contenido Desplazable -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="16, 12, 16, 24" Spacing="16">
+                
+                <!-- Barra Superior con Botón Atrás y Paso del Flujo -->
+                <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center" Margin="0, 4, 0, 4">
+                    <!-- Botón Atrás Circular -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 20"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding VolverCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="←"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Título de Pantalla -->
+                    <Label Grid.Column="1"
+                           Text="Fecha y Horario"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+
+                    <!-- Indicador de Paso -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            Padding="10, 4"
+                            VerticalOptions="Center">
+                        <Label Text="Paso 3 de 4"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Secondary}" />
+                    </Border>
+                </Grid>
+
+                <!-- Resumen Superior del Servicio y Profesional -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="16, 12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="3">
+                            <Label Text="RESERVA EN PROCESO" 
+                                   FontSize="10" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Secondary}" />
+                            <Label Text="{Binding Servicio.Nombre}" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="{Binding EstilistaNombre, StringFormat='Atención: {0}'}" 
+                                   FontSize="12" 
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" 
+                               Text="{Binding Servicio.PrecioFormateado}" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource Primary}" 
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- 1. SELECCIÓN DE FECHA (Calendario Horizontal de Días Próximos) -->
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0" 
+                               Text="Selecciona el Día" 
+                               Style="{StaticResource TitleLabelStyle}" 
+                               FontSize="16" />
+                        <Label Grid.Column="1" 
+                               Text="{Binding MesAnioTexto}" 
+                               FontSize="12" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource Secondary}" 
+                               VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding DiasSemana}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DayItem">
+                                    <Border StrokeShape="RoundRectangle 16"
+                                            Padding="10, 12"
+                                            WidthRequest="65"
+                                            StrokeThickness="1.5">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                                <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+
+                                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                            <Label Text="{Binding DiaNombre}" 
+                                                   FontSize="11" 
+                                                   FontAttributes="Bold"
+                                                   HorizontalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="False">
+                                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Text="{Binding DiaNumero}" 
+                                                   FontSize="18" 
+                                                   FontAttributes="Bold" 
+                                                   HorizontalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="False">
+                                                        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </VerticalStackLayout>
+
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SlotSelectionViewModel}}, Path=SeleccionarDiaCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+                </VerticalStackLayout>
+
+                <!-- Banner de Error si Ocurre -->
+                <Border StrokeShape="RoundRectangle 12"
+                        Stroke="{StaticResource StatusCanceladaBorder}"
+                        StrokeThickness="1"
+                        BackgroundColor="{StaticResource StatusCanceladaBg}"
+                        Padding="12, 10"
+                        IsVisible="{Binding HasErrorMessage}">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="⚠️" FontSize="14" VerticalOptions="Center" />
+                        <Label Text="{Binding ErrorMessage}"
+                               TextColor="{StaticResource Error}"
+                               FontSize="12"
+                               VerticalOptions="Center"
+                               LineBreakMode="WordWrap" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <!-- Indicador de Carga al Consultar Disponibilidad -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   HeightRequest="30"
+                                   WidthRequest="30"
+                                   HorizontalOptions="Center" />
+
+                <!-- 2. SELECCIÓN DE HORARIO: Turno Mañana -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="🌅 Turno Mañana" 
+                           FontAttributes="Bold" 
+                           FontSize="14" 
+                           TextColor="{StaticResource Primary}" />
+                    
+                    <FlexLayout BindableLayout.ItemsSource="{Binding SlotsManana}" 
+                                Wrap="Wrap" 
+                                JustifyContent="Start">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TimeSlotItem">
+                                <Border StrokeShape="RoundRectangle 14"
+                                        Margin="0, 0, 10, 10"
+                                        Padding="14, 10"
+                                        StrokeThickness="1.5">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding NoDisponible}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource InputBackground}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding Disponible}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+
+                                    <Label Text="{Binding Hora}" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding NoDisponible}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Disponible}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SlotSelectionViewModel}}, Path=SeleccionarSlotCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+
+                <!-- 3. SELECCIÓN DE HORARIO: Turno Tarde -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="🌇 Turno Tarde" 
+                           FontAttributes="Bold" 
+                           FontSize="14" 
+                           TextColor="{StaticResource Primary}" />
+                    
+                    <FlexLayout BindableLayout.ItemsSource="{Binding SlotsTarde}" 
+                                Wrap="Wrap" 
+                                JustifyContent="Start">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TimeSlotItem">
+                                <Border StrokeShape="RoundRectangle 14"
+                                        Margin="0, 0, 10, 10"
+                                        Padding="14, 10"
+                                        StrokeThickness="1.5">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding NoDisponible}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource InputBackground}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding Disponible}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                            <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+
+                                    <Label Text="{Binding Hora}" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding NoDisponible}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Disponible}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SlotSelectionViewModel}}, Path=SeleccionarSlotCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+
+                <!-- Resumen Dinámico del Bloque Horario Seleccionado -->
+                <Border StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BackgroundSecondary}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        Padding="14, 12">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="⏱" FontSize="20" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Horario seleccionado para tu cita:" 
+                                   FontSize="11" 
+                                   TextColor="{StaticResource TextSecondary}" />
+                            <Label Text="{Binding ResumenFechaHora}" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Primary}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Barra Inferior Fija de Navegación -->
+        <Border Grid.Row="1" 
+                BackgroundColor="{StaticResource Surface}" 
+                StrokeThickness="1"
+                Stroke="{StaticResource Border}"
+                Padding="20, 12">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="1">
+                    <Label Text="Horario:" 
+                           Style="{StaticResource CaptionLabelStyle}" 
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="{Binding HoraSeleccionada, TargetNullValue='Sin seleccionar'}" 
+                           FontSize="15" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource TextPrimary}" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1"
+                        Text="Continuar al Resumen ➔" 
+                        Command="{Binding ContinuarAResumenCommand}" 
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="48"
+                        Padding="22, 0"
+                        FontSize="15" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

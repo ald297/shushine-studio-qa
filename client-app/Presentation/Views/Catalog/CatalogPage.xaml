@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Catalog"
+             xmlns:entities="clr-namespace:ShushineStudio.Mobile.Domain.Entities"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Catalog.CatalogPage"
+             x:DataType="vm:CatalogViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false">
+
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
+        
+        <!-- 1. Encabezado Oficial LotusHeaderView -->
+        <VerticalStackLayout Grid.Row="0" Spacing="0">
+            <components:LotusHeaderView
+                Title="Catálogo"
+                Greeting="Shunshine Studio • Atelier de Belleza"
+                ShowBackButton="False"
+                ShowNotificationButton="True"
+                HasUnreadNotifications="False"
+                ShowAvatar="False" />
+
+            <Label Text="Descubre nuestra gama exclusiva de rituales, tratamientos y productos"
+                   Style="{StaticResource CaptionLabelStyle}"
+                   TextColor="{StaticResource TextSecondary}"
+                   Margin="16, 0, 16, 8" />
+
+            <!-- Selector de sección: Servicios | Productos -->
+            <Border Margin="16,0,16,8"
+                    Padding="4"
+                    BackgroundColor="{StaticResource SurfaceVariant}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 9999">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="0">
+                    <!-- Chip Servicios (activo por defecto) -->
+                    <Border x:Name="ChipClienteServicios"
+                            Grid.Column="0"
+                            StrokeShape="RoundRectangle 9999"
+                            BackgroundColor="{StaticResource Primary}"
+                            Stroke="Transparent"
+                            Padding="0,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnServiciosChipTapped" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="LabelClienteServicios"
+                               Text="✂ Servicios"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="13"
+                               TextColor="White"
+                               HorizontalOptions="Center" />
+                    </Border>
+                    <!-- Chip Productos -->
+                    <Border x:Name="ChipClienteProductos"
+                            Grid.Column="1"
+                            StrokeShape="RoundRectangle 9999"
+                            BackgroundColor="Transparent"
+                            Stroke="Transparent"
+                            Padding="0,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnProductosChipTapped" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="LabelClienteProductos"
+                               Text="🛍 Productos"
+                               FontFamily="PlusJakartaSansSemiBold"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}"
+                               HorizontalOptions="Center" />
+                    </Border>
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- 2. Barra de Búsqueda Moderna -->
+        <Border Grid.Row="1" 
+                Style="{StaticResource InputContainerStyle}" 
+                Margin="16, 0, 16, 8"
+                Padding="14, 0"
+                HeightRequest="46"
+                StrokeShape="RoundRectangle 14">
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Grid.Column="0" 
+                       Text="🔍" 
+                       FontSize="15" 
+                       VerticalOptions="Center" 
+                       Margin="0, 0, 8, 0" 
+                       TextColor="{StaticResource Secondary}" />
+                <Entry Grid.Column="1"
+                       Placeholder="Buscar tratamiento, corte, manicura..."
+                       PlaceholderColor="{StaticResource TextSecondary}"
+                       Text="{Binding SearchText}"
+                       FontSize="14"
+                       TextColor="{StaticResource TextPrimary}"
+                       ClearButtonVisibility="WhileEditing"
+                       BackgroundColor="Transparent" />
+            </Grid>
+        </Border>
+
+        <!-- 3. Selector Horizontal de Categorías (Pills / Chips) -->
+        <ScrollView Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalScrollBarVisibility="Never" 
+                    Padding="16, 2, 16, 10">
+            <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Categorias}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CategoriaItem">
+                        <Border StrokeShape="RoundRectangle 20"
+                                Stroke="{StaticResource Border}"
+                                StrokeThickness="1"
+                                Padding="14, 8">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                    <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{Binding Icono}" FontSize="13" VerticalOptions="Center" />
+                                <Label Text="{Binding Nombre}" 
+                                       FontSize="13"
+                                       FontAttributes="Bold">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="False">
+                                            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </HorizontalStackLayout>
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CatalogViewModel}}, Path=SeleccionarCategoriaCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+        </ScrollView>
+
+        <!-- 4. Banner de Error (Integrado) -->
+        <Border Grid.Row="3"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource StatusCanceladaBorder}"
+                StrokeThickness="1"
+                BackgroundColor="{StaticResource StatusCanceladaBg}"
+                Padding="14, 10"
+                Margin="16, 0, 16, 10"
+                IsVisible="{Binding HasErrorMessage}">
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Label Text="⚠️" FontSize="14" VerticalOptions="Center" />
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{StaticResource Error}"
+                       FontSize="12"
+                       VerticalOptions="Center"
+                       LineBreakMode="WordWrap" />
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- 5. Listado de Servicios con ServiceCardView -->
+        <RefreshView Grid.Row="4"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadServiciosCommand}">
+            <Grid>
+                <!-- Indicador de Carga No Bloqueante -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   VerticalOptions="Start"
+                                   Margin="0, 12, 0, 0"
+                                   HeightRequest="32"
+                                   WidthRequest="32" />
+
+                <CollectionView ItemsSource="{Binding Servicios}"
+                                SelectionMode="None"
+                                Margin="16, 0, 16, 8">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+                    </CollectionView.ItemsLayout>
+                    
+                    <!-- Estado Vacío -->
+                    <CollectionView.EmptyView>
+                        <components:EmptyStateView 
+                            Title="Sin servicios disponibles"
+                            Description="No encontramos tratamientos activos para la categoría seleccionada o el filtro ingresado."
+                            IconEmoji="🌸"
+                            IsActionVisible="False" />
+                    </CollectionView.EmptyView>
+
+                    <!-- Tarjetas de Servicio Reutilizables -->
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="entities:Servicio">
+                            <Grid>
+                                <components:ServiceCardView
+                                    ServiceName="{Binding Nombre}"
+                                    Category="{Binding CategoriaNombre}"
+                                    DurationText="{Binding DuracionFormateada}"
+                                    PriceText="{Binding PrecioFormateado}"
+                                    ImageUrl="{Binding ImagenUrl}"
+                                    ActionText="Reservar"
+                                    ActionCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:CatalogViewModel}}, Path=SelectServicioCommand}"
+                                    ActionCommandParameter="{Binding .}" />
+
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CatalogViewModel}}, Path=SelectServicioCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </RefreshView>
+
+    </Grid>
+</ContentPage>

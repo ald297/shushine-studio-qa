@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Appointments"
+             xmlns:entities="clr-namespace:ShushineStudio.Mobile.Domain.Entities"
+             xmlns:components="clr-namespace:ShushineStudio.Mobile.Presentation.Components"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Appointments.MyAppointmentsPage"
+             x:DataType="vm:MyAppointmentsViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="False"
+             Title="Mis Citas">
+
+    <Grid RowDefinitions="Auto, Auto, *">
+
+        <!-- 1. Encabezado de Marca Editorial (LotusHeaderView) -->
+        <components:LotusHeaderView Grid.Row="0"
+                                    Title="Mis Citas"
+                                    Subtitle="Consulta y gestiona tus citas programadas en Shunshine Studio."
+                                    ShowBackButton="False" />
+
+        <!-- 2. Selector de Pestañas Segmentado (Próximas vs Historial) -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 9999"
+                BackgroundColor="{StaticResource SurfaceVariant}"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="1"
+                Margin="20,8,20,12"
+                Padding="4">
+            <Grid ColumnDefinitions="*, *">
+                <!-- Pestaña Próximas -->
+                <Border Grid.Column="0"
+                        StrokeShape="RoundRectangle 9999"
+                        Padding="12,8"
+                        Stroke="Transparent"
+                        BackgroundColor="Transparent">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding MostrarFuturas}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Próximas"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding MostrarFuturas}" Value="True">
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+
+                        <!-- Badge Contador -->
+                        <Border StrokeShape="RoundRectangle 10"
+                                BackgroundColor="{StaticResource Surface}"
+                                Padding="6,1"
+                                Stroke="Transparent">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding MostrarFuturas}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#741F36" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding TotalProximas}"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextSecondary}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding MostrarFuturas}" Value="True">
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding VerFuturasCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+
+                <!-- Pestaña Historial -->
+                <Border Grid.Column="1"
+                        StrokeShape="RoundRectangle 9999"
+                        Padding="12,8"
+                        Stroke="Transparent"
+                        BackgroundColor="Transparent">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding MostrarPasadas}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Historial"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               TextColor="{StaticResource TextSecondary}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding MostrarPasadas}" Value="True">
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+
+                        <!-- Badge Contador -->
+                        <Border StrokeShape="RoundRectangle 10"
+                                BackgroundColor="{StaticResource Surface}"
+                                Padding="6,1"
+                                Stroke="Transparent">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding MostrarPasadas}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#741F36" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding TotalPasadas}"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextSecondary}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding MostrarPasadas}" Value="True">
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding VerPasadasCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 3. Contenido Principal con Pull-To-Refresh -->
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadCitasCommand}"
+                     RefreshColor="{StaticResource Primary}">
+
+            <ScrollView Padding="20,0,20,24">
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Mensaje de Error si ocurre -->
+                    <Border StrokeShape="RoundRectangle 12"
+                            BackgroundColor="#FBEBEB"
+                            Stroke="#F2B8B8"
+                            Padding="12"
+                            IsVisible="{Binding ErrorMessage, Converter={x:Null}}">
+                        <Label Text="{Binding ErrorMessage}"
+                               FontSize="13"
+                               TextColor="#8E2323"
+                               HorizontalOptions="Center" />
+                    </Border>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: PRÓXIMAS CITAS                     -->
+                    <!-- ========================================== -->
+                    <VerticalStackLayout IsVisible="{Binding MostrarFuturas}" Spacing="12">
+                        <!-- Vista Vacía para Próximas -->
+                        <components:EmptyStateView Title="No tienes citas próximas"
+                                                   Description="Cuando reserves un servicio, aparecerá aquí."
+                                                   IconEmoji="📅"
+                                                   ActionText="Explorar Servicios"
+                                                   IsActionVisible="True"
+                                                   ActionCommand="{Binding ExplorarServiciosCommand}"
+                                                   IsVisible="{Binding HasProximas, Converter={x:Null}}">
+                            <components:EmptyStateView.Triggers>
+                                <DataTrigger TargetType="components:EmptyStateView" Binding="{Binding HasProximas}" Value="True">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </components:EmptyStateView.Triggers>
+                        </components:EmptyStateView>
+
+                        <!-- Lista de Próximas Citas -->
+                        <CollectionView ItemsSource="{Binding CitasProximas}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:Reserva">
+                                    <Border StrokeShape="RoundRectangle 16"
+                                            Stroke="{StaticResource Border}"
+                                            StrokeThickness="1"
+                                            BackgroundColor="{StaticResource Surface}"
+                                            Padding="16"
+                                            Margin="0,0,0,12">
+                                        <VerticalStackLayout Spacing="12">
+                                            
+                                            <!-- Fila Superior: Código y Badge de Estado -->
+                                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding CodigoReserva}"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource Secondary}"
+                                                       VerticalOptions="Center" />
+
+                                                <components:StatusBadgeView Grid.Column="1"
+                                                                            Status="{Binding Estado}" />
+                                            </Grid>
+
+                                            <!-- Línea Divisoria -->
+                                            <BoxView HeightRequest="1" Color="{StaticResource Border}" />
+
+                                            <!-- Servicio y Especialista -->
+                                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                                    <Label Text="{Binding ServicioNombre}"
+                                                           FontFamily="PlayfairDisplayBold"
+                                                           FontSize="16"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{StaticResource TextPrimary}" />
+
+                                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                        <Label Text="👤" FontSize="12" TextColor="{StaticResource TextSecondary}" VerticalOptions="Center" />
+                                                        <Label Text="{Binding EstilistaNombre, TargetNullValue='Especialista asignada'}"
+                                                               FontSize="13"
+                                                               TextColor="{StaticResource TextSecondary}"
+                                                               VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+                                                </VerticalStackLayout>
+
+                                                <!-- Precio Total -->
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding TotalFormateado}"
+                                                       FontFamily="PlayfairDisplayBold"
+                                                       FontSize="17"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource Primary}"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+
+                                            <!-- Fecha y Horario -->
+                                            <Border StrokeShape="RoundRectangle 10"
+                                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                                    Padding="10,6">
+                                                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                                                    <Label Grid.Column="0" Text="📅" FontSize="14" VerticalOptions="Center" />
+                                                    <Label Grid.Column="1"
+                                                           Text="{Binding FechaHoraInicio, StringFormat='{0:ddd, dd MMM yyyy · hh:mm tt}'}"
+                                                           FontSize="13"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{StaticResource TextPrimary}"
+                                                           VerticalOptions="Center" />
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Botones de Acción -->
+                                            <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" Margin="0,4,0,0">
+                                                <Button Grid.Column="0"
+                                                        Text="Ver Detalle"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        HeightRequest="40"
+                                                        FontSize="13"
+                                                        CornerRadius="10"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=VerDetalleCitaCommand}"
+                                                        CommandParameter="{Binding .}" />
+
+                                                <Button Grid.Column="1"
+                                                        Text="Cancelar"
+                                                        HeightRequest="40"
+                                                        FontSize="12"
+                                                        Padding="14,0"
+                                                        CornerRadius="10"
+                                                        BackgroundColor="#FBEBEB"
+                                                        TextColor="#8E2323"
+                                                        BorderColor="#F2B8B8"
+                                                        BorderWidth="1"
+                                                        IsVisible="{Binding PuedeCancelar}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=CancelarCitaCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+
+                                        <!-- Tap en la tarjeta abre el detalle -->
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=VerDetalleCitaCommand}"
+                                                                 CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: HISTORIAL PASADO                   -->
+                    <!-- ========================================== -->
+                    <VerticalStackLayout IsVisible="{Binding MostrarPasadas}" Spacing="12">
+                        <!-- Vista Vacía para Historial -->
+                        <components:EmptyStateView Title="Aún no tienes historial"
+                                                   Description="Tus citas terminadas aparecerán aquí."
+                                                   IconEmoji="✨"
+                                                   ActionText="Explorar Catálogo"
+                                                   IsActionVisible="True"
+                                                   ActionCommand="{Binding ExplorarServiciosCommand}"
+                                                   IsVisible="{Binding HasPasadas, Converter={x:Null}}">
+                            <components:EmptyStateView.Triggers>
+                                <DataTrigger TargetType="components:EmptyStateView" Binding="{Binding HasPasadas}" Value="True">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </components:EmptyStateView.Triggers>
+                        </components:EmptyStateView>
+
+                        <!-- Lista de Historial -->
+                        <CollectionView ItemsSource="{Binding CitasPasadas}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:Reserva">
+                                    <Border StrokeShape="RoundRectangle 16"
+                                            Stroke="{StaticResource Border}"
+                                            StrokeThickness="1"
+                                            BackgroundColor="{StaticResource Surface}"
+                                            Padding="16"
+                                            Margin="0,0,0,12">
+                                        <VerticalStackLayout Spacing="12">
+                                            
+                                            <!-- Fila Superior: Código y Badge de Estado -->
+                                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding CodigoReserva}"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource TextSecondary}"
+                                                       VerticalOptions="Center" />
+
+                                                <components:StatusBadgeView Grid.Column="1"
+                                                                            Status="{Binding Estado}" />
+                                            </Grid>
+
+                                            <!-- Servicio y Especialista -->
+                                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                                    <Label Text="{Binding ServicioNombre}"
+                                                           FontFamily="PlayfairDisplayBold"
+                                                           FontSize="15"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{StaticResource TextPrimary}" />
+
+                                                    <Label Text="{Binding EstilistaNombre, StringFormat='Atendida por: {0}'}"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource TextSecondary}" />
+                                                </VerticalStackLayout>
+
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding TotalFormateado}"
+                                                       FontFamily="PlayfairDisplayBold"
+                                                       FontSize="16"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource TextPrimary}"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+
+                                            <!-- Fecha -->
+                                            <Label Text="{Binding FechaHoraInicio, StringFormat='📅 {0:dd/MM/yyyy}'}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource TextSecondary}" />
+
+                                            <!-- Botones: Ver Detalle y Volver a Agendar -->
+                                            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,4,0,0">
+                                                <Button Grid.Column="0"
+                                                        Text="Ver Detalle"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        HeightRequest="38"
+                                                        FontSize="12"
+                                                        CornerRadius="10"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=VerDetalleCitaCommand}"
+                                                        CommandParameter="{Binding .}" />
+
+                                                <Button Grid.Column="1"
+                                                        Text="Volver a Agendar"
+                                                        Style="{StaticResource PrimaryButtonStyle}"
+                                                        HeightRequest="38"
+                                                        FontSize="12"
+                                                        CornerRadius="10"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=ReprogramarCitaCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+
+                                        <!-- Tap en la tarjeta abre el detalle -->
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyAppointmentsViewModel}}, Path=VerDetalleCitaCommand}"
+                                                                 CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

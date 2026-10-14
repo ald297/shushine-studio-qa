@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShushineStudio.Mobile.Presentation.Components.CustomEntry"
+             x:Name="ThisCustomEntry">
+    <VerticalStackLayout Spacing="6" Margin="0,0,0,12">
+        <!-- Etiqueta del Campo (Opcional) -->
+        <Label Text="{Binding Source={x:Reference ThisCustomEntry}, Path=LabelText}"
+               Style="{StaticResource FormLabelStyle}"
+               IsVisible="{Binding Source={x:Reference ThisCustomEntry}, Path=LabelText, Converter={x:Null}}" />
+
+        <!-- Contenedor con Borde Redondeado y Fondo Cálido -->
+        <Border x:Name="EntryBorder"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="1"
+                BackgroundColor="{StaticResource InputBackground}"
+                Padding="14,0"
+                HeightRequest="52"
+                VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <!-- Icono Principal a la Izquierda -->
+                <Image Grid.Column="0"
+                       Source="{Binding Source={x:Reference ThisCustomEntry}, Path=LeadingIcon}"
+                       WidthRequest="20"
+                       HeightRequest="20"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding Source={x:Reference ThisCustomEntry}, Path=LeadingIcon, Converter={x:Null}}" />
+
+                <!-- Entrada de Texto -->
+                <Entry x:Name="InnerEntry"
+                       Grid.Column="1"
+                       Text="{Binding Source={x:Reference ThisCustomEntry}, Path=Text, Mode=TwoWay}"
+                       Placeholder="{Binding Source={x:Reference ThisCustomEntry}, Path=Placeholder}"
+                       IsPassword="{Binding Source={x:Reference ThisCustomEntry}, Path=IsPassword}"
+                       Keyboard="{Binding Source={x:Reference ThisCustomEntry}, Path=Keyboard}"
+                       ReturnType="{Binding Source={x:Reference ThisCustomEntry}, Path=ReturnType}"
+                       TextColor="{StaticResource TextPrimary}"
+                       PlaceholderColor="{StaticResource TextSecondary}"
+                       FontSize="15"
+                       BackgroundColor="Transparent"
+                       Focused="OnEntryFocused"
+                       Unfocused="OnEntryUnfocused"
+                       VerticalOptions="Center" />
+
+                <!-- Botón opcional de Ver/Ocultar Contraseña -->
+                <Label x:Name="PasswordToggleLabel"
+                       Grid.Column="2"
+                       Text="👁️"
+                       FontSize="16"
+                       VerticalOptions="Center"
+                       Padding="6,0"
+                       IsVisible="{Binding Source={x:Reference ThisCustomEntry}, Path=IsPasswordToggleEnabled}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPasswordToggleTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </Grid>
+        </Border>
+
+        <!-- Mensaje de Error / Ayuda (Opcional) -->
+        <Label Text="{Binding Source={x:Reference ThisCustomEntry}, Path=ErrorText}"
+               FontSize="11"
+               TextColor="{StaticResource Error}"
+               IsVisible="{Binding Source={x:Reference ThisCustomEntry}, Path=HasError}"
+               Margin="4,0,0,0" />
+    </VerticalStackLayout>
+</ContentView>

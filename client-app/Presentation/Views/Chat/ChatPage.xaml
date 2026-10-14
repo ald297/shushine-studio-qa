@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="ShushineStudio.Mobile.Presentation.Views.Chat.ChatPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Chat"
+    x:DataType="vm:ChatViewModel"
+    Shell.NavBarIsVisible="false"
+    BackgroundColor="{StaticResource Background}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="ClientBubble" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                <Setter Property="CornerRadius" Value="18" />
+                <Setter Property="Padding" Value="14,10" />
+                <Setter Property="HasShadow" Value="False" />
+                <Setter Property="HorizontalOptions" Value="End" />
+                <Setter Property="MaximumWidthRequest" Value="260" />
+            </Style>
+            <Style x:Key="SalonBubble" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                <Setter Property="CornerRadius" Value="18" />
+                <Setter Property="Padding" Value="14,10" />
+                <Setter Property="HasShadow" Value="False" />
+                <Setter Property="HorizontalOptions" Value="Start" />
+                <Setter Property="MaximumWidthRequest" Value="260" />
+                <Setter Property="BorderColor" Value="{StaticResource Border}" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- HEADER                                     -->
+        <!-- ══════════════════════════════════════════ -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="{StaticResource Surface}"
+            Padding="16,52,16,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnDefinitions="44,*,Auto">
+                <ImageButton
+                    Grid.Column="0"
+                    Source="arrow_left.svg"
+                    Command="{Binding GoBackCommand}"
+                    WidthRequest="28"
+                    HeightRequest="28"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Center" />
+
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="2">
+                    <Label
+                        Text="Shunshine Studio"
+                        FontFamily="PlayfairDisplay"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextPrimary}"
+                        HorizontalOptions="Center" />
+                    <Label
+                        Text="Equipo de atención"
+                        FontFamily="PlusJakartaSans"
+                        FontSize="12"
+                        TextColor="{StaticResource TextSecondary}"
+                        HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <Border
+                    Grid.Column="2"
+                    BackgroundColor="#FCECEF"
+                    Stroke="#F7CAD3"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="8,5"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToCustomRequestCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                        <Label Text="✨" FontSize="12" VerticalOptions="Center" />
+                        <Label
+                            Text="Solicitud"
+                            FontFamily="PlusJakartaSans"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Primary}"
+                            VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <BoxView
+                Grid.Row="1"
+                HeightRequest="1"
+                BackgroundColor="{StaticResource Border}"
+                Margin="0,12,0,0" />
+        </Grid>
+
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- ESTADO VACÍO                              -->
+        <!-- ══════════════════════════════════════════ -->
+        <ScrollView
+            Grid.Row="1"
+            IsVisible="{Binding ShowEmptyState}">
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="16"
+                Padding="32,100,32,32">
+
+                <Frame
+                    CornerRadius="45"
+                    WidthRequest="90"
+                    HeightRequest="90"
+                    BackgroundColor="{StaticResource InputBackground}"
+                    BorderColor="{StaticResource Border}"
+                    HasShadow="False"
+                    HorizontalOptions="Center"
+                    Padding="0">
+                    <Label
+                        Text="💬"
+                        FontSize="38"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </Frame>
+
+                <Label
+                    Text="Estamos aquí para ayudarte"
+                    FontFamily="PlayfairDisplay"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}"
+                    HorizontalOptions="Center"
+                    HorizontalTextAlignment="Center" />
+
+                <Label
+                    Text="Escríbenos si tienes alguna pregunta o necesitas ayuda."
+                    FontFamily="PlusJakartaSans"
+                    FontSize="14"
+                    TextColor="{StaticResource TextSecondary}"
+                    HorizontalOptions="Center"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="WordWrap" />
+
+                <!-- Botón: Iniciar conversación -->
+                <Button
+                    Text="Iniciar conversación"
+                    Command="{Binding IniciarConversacionCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource TextLight}"
+                    FontFamily="PlusJakartaSans"
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    CornerRadius="16"
+                    HeightRequest="50"
+                    Margin="0,8,0,0" />
+
+                <!-- Acción independiente: ✨ Solicitud personalizada -->
+                <Button
+                    Text="✨ Solicitud personalizada"
+                    Command="{Binding NavigateToCustomRequestCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    HeightRequest="50"
+                    CornerRadius="16"
+                    Margin="0,4,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- LISTA DE MENSAJES                          -->
+        <!-- ══════════════════════════════════════════ -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Messages}"
+            IsVisible="{Binding HasMessages}"
+            Margin="16,12">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChatMessageItem">
+                    <Grid Margin="0,4">
+                        <Frame Style="{StaticResource ClientBubble}" IsVisible="{Binding IsFromClient}">
+                            <VerticalStackLayout Spacing="4">
+                                <Image
+                                    IsVisible="{Binding TieneImagen}"
+                                    Source="{Binding ImagenUrl}"
+                                    Aspect="AspectFill"
+                                    MaximumHeightRequest="200"
+                                    MaximumWidthRequest="220"
+                                    HorizontalOptions="End" />
+                                <Label
+                                    IsVisible="{Binding TieneTexto}"
+                                    Text="{Binding Content}"
+                                    FontFamily="PlusJakartaSans"
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextLight}" />
+                                <Label
+                                    Text="{Binding TimeDisplay}"
+                                    FontFamily="PlusJakartaSans"
+                                    FontSize="10"
+                                    TextColor="#FFFFFF99"
+                                    HorizontalOptions="End" />
+                            </VerticalStackLayout>
+                        </Frame>
+                        <Frame Style="{StaticResource SalonBubble}" IsVisible="{Binding IsNotFromClient}">
+                            <VerticalStackLayout Spacing="4">
+                                <Image
+                                    IsVisible="{Binding TieneImagen}"
+                                    Source="{Binding ImagenUrl}"
+                                    Aspect="AspectFill"
+                                    MaximumHeightRequest="200"
+                                    MaximumWidthRequest="220"
+                                    HorizontalOptions="Start" />
+                                <Label
+                                    IsVisible="{Binding TieneTexto}"
+                                    Text="{Binding Content}"
+                                    FontFamily="PlusJakartaSans"
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextPrimary}" />
+                                <Label
+                                    Text="{Binding TimeDisplay}"
+                                    FontFamily="PlusJakartaSans"
+                                    FontSize="10"
+                                    TextColor="{StaticResource TextSecondary}"
+                                    HorizontalOptions="End" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- COMPOSITOR DE MENSAJE                      -->
+        <!-- ══════════════════════════════════════════ -->
+        <Grid
+            Grid.Row="2"
+            BackgroundColor="{StaticResource Surface}"
+            Padding="12,10,12,28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Error banner -->
+            <Frame
+                Grid.Row="0"
+                IsVisible="{Binding HasError}"
+                BackgroundColor="#FFEBEE"
+                BorderColor="#FFCDD2"
+                CornerRadius="8"
+                Padding="12,8"
+                HasShadow="False"
+                Margin="0,0,0,8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label
+                        Grid.Column="0"
+                        Text="{Binding ErrorMessage}"
+                        FontFamily="PlusJakartaSans"
+                        FontSize="12"
+                        TextColor="#C62828"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Column="1"
+                        Text="✕"
+                        Command="{Binding DismissErrorCommand}"
+                        WidthRequest="22"
+                        HeightRequest="22"
+                        Padding="0"
+                        FontSize="13"
+                        TextColor="#C62828"
+                        BackgroundColor="Transparent" />
+                </Grid>
+            </Frame>
+
+            <!-- Campo texto + Foto + Enviar -->
+            <Grid
+                Grid.Row="1"
+                ColumnDefinitions="Auto,*,Auto"
+                ColumnSpacing="8">
+
+                <!-- Botón adjuntar imagen -->
+                <Frame
+                    Grid.Column="0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    CornerRadius="22"
+                    Padding="0"
+                    HasShadow="False"
+                    BackgroundColor="{StaticResource InputBackground}">
+                    <Button
+                        Text="📷"
+                        Command="{Binding AttachImageCommand}"
+                        BackgroundColor="Transparent"
+                        FontSize="18"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        Padding="0"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </Frame>
+
+                <Frame
+                    Grid.Column="1"
+                    BackgroundColor="{StaticResource InputBackground}"
+                    BorderColor="{StaticResource Border}"
+                    CornerRadius="22"
+                    Padding="16,0"
+                    HasShadow="False">
+                    <Entry
+                        Text="{Binding MessageText}"
+                        Placeholder="Escribe un mensaje..."
+                        PlaceholderColor="{StaticResource TextSecondary}"
+                        FontFamily="PlusJakartaSans"
+                        FontSize="14"
+                        TextColor="{StaticResource TextPrimary}"
+                        ReturnCommand="{Binding SendMessageCommand}"
+                        ReturnType="Send"
+                        VerticalOptions="Center"
+                        HeightRequest="44" />
+                </Frame>
+
+                <!-- Botón enviar -->
+                <Frame
+                    Grid.Column="2"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    CornerRadius="22"
+                    Padding="0"
+                    HasShadow="False"
+                    BackgroundColor="{StaticResource Primary}">
+                    <Grid>
+                        <ImageButton
+                            IsVisible="{Binding IsNotSending}"
+                            Source="send.svg"
+                            Command="{Binding SendMessageCommand}"
+                            BackgroundColor="Transparent"
+                            WidthRequest="20"
+                            HeightRequest="20"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+                        <ActivityIndicator
+                            IsVisible="{Binding IsSending}"
+                            IsRunning="{Binding IsSending}"
+                            Color="{StaticResource TextLight}"
+                            WidthRequest="20"
+                            HeightRequest="20"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </Frame>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</ContentPage>

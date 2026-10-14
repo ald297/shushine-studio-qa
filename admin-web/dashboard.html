@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full" :class="{ 'dark': darkMode }" x-data="salonApp()" x-init="initApp()">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shushine Studio — Panel de Gestión & Administración</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            aura: {
+              midnight: '#0F0F1A',
+              navy: '#1A1A2E',
+              cardDark: '#232338',
+              cardDarkBorder: '#32324D',
+              gold: '#D4A574',
+              goldOld: '#C9A962',
+              goldLight: '#E8D5C4',
+              sand: '#F5F0EB',
+              sandDark: '#EFE9E2',
+              sage: '#A8C4B8',
+              sageDark: '#7A9A8E',
+              terracotta: '#E07A5F',
+              rose: '#D98282'
+            }
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"DM Sans"', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            'aura': '0 8px 32px 0 rgba(26, 26, 46, 0.08)',
+            'aura-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.35)',
+            'gold-glow': '0 0 20px rgba(212, 165, 116, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+
+  <style>
+    [x-cloak] { display: none !important; }
+    
+    /* Scrollbar elegante */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 165, 116, 0.3); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 165, 116, 0.6); }
+
+    /* Glassmorphism */
+    .glass-panel-light {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(232, 213, 196, 0.6);
+    }
+    .dark .glass-panel-dark {
+      background: rgba(35, 35, 56, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(50, 50, 77, 0.7);
+    }
+
+    /* Resplandor dorado */
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #D4A574 0%, #C9A962 50%, #E8D5C4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+
+<body class="h-full bg-aura-sand text-aura-navy dark:bg-aura-midnight dark:text-aura-sand font-sans transition-colors duration-300 antialiased overflow-hidden">
+
+  <!-- ===================================================================== -->
+  <!-- CONTENEDOR PRINCIPAL: APP SHELL -->
+  <!-- ===================================================================== -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- 1. BARRA LATERAL (SIDEBAR) -->
+    <aside 
+      class="flex flex-col z-30 transition-all duration-300 ease-in-out border-r shrink-0 select-none"
+      :class="sidebarCollapsed ? 'w-20' : 'w-72'"
+      class="bg-white/90 dark:bg-aura-navy/95 border-aura-goldLight/40 dark:border-aura-cardDarkBorder backdrop-blur-xl">
+      
+      <!-- Logo & Encabezado -->
+      <div class="h-20 flex items-center justify-between px-5 border-b border-aura-goldLight/40 dark:border-aura-cardDarkBorder">
+        <div class="flex items-center space-x-3 overflow-hidden cursor-pointer" @click="currentTab = 'dashboard'">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-aura-navy to-aura-cardDark dark:from-aura-gold dark:to-aura-goldOld flex items-center justify-center text-aura-gold dark:text-aura-navy shadow-lg shadow-aura-gold/10 shrink-0 border border-aura-gold/30">
+            <i class="ph-fill ph-sparkle text-xl"></i>
+          </div>
+          <div class="transition-opacity duration-200" :class="sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100 block'">
+            <h1 class="font-display font-bold text-xl tracking-wider gold-gradient-text leading-tight">SHUSHINE</h1>
+            <p class="text-[10px] tracking-[0.2em] uppercase text-aura-goldOld font-semibold">Studio & Spa</p>
+          </div>
+        </div>
+        <button 
+          @click="sidebarCollapsed = !sidebarCollapsed" 
+          class="p-2 rounded-lg text-gray-400 hover:text-aura-gold hover:bg-aura-gold/10 transition-colors"
+          title="Colapsar menú">
+          <i :class="sidebarCollapsed ? 'ph ph-caret-right' : 'ph ph-caret-left'" class="text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Menú de Navegación -->
+      <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-1.5">
+        <template x-for="item in navItems" :key="item.id">
+          <button 
+            @click="currentTab = item.id"
+            class="w-full flex items-center rounded-xl px-3.5 py-3 transition-all duration-200 group text-left relative"
+            :class="currentTab === item.id 
+              ? 'bg-gradient-to-r from-aura-gold/20 to-transparent text-aura-gold font-semibold shadow-sm border-l-4 border-aura-gold dark:from-aura-gold/15' 
+              : 'text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-aura-navy dark:hover:text-white'">
+            <i :class="item.icon" class="text-xl shrink-0 transition-transform group-hover:scale-110" :class="currentTab === item.id ? 'text-aura-gold' : 'text-gray-400 dark:text-gray-500'"></i>
+            <span 
+              class="ml-3.5 text-sm transition-opacity duration-200 whitespace-nowrap"
+              :class="sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100 block'" 
+              x-text="item.label">
+            </span>
+            <span 
+              x-show="!sidebarCollapsed && item.badge" 
+              class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
+              :class="item.badgeClass || 'bg-aura-terracotta text-white'"
+              x-text="item.badge">
+            </span>
+          </button>
+        </template>
+      </nav>
+
+      <!-- Estado del Salón en Barra Lateral -->
+      <div class="p-4 border-t border-aura-goldLight/40 dark:border-aura-cardDarkBorder" x-show="!sidebarCollapsed">
+        <div class="rounded-xl p-3 bg-aura-gold/10 dark:bg-aura-cardDark/80 border border-aura-gold/20 flex items-center space-x-3">
+          <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div class="overflow-hidden">
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Estado del Salón:</p>
+            <p class="text-sm font-semibold text-aura-navy dark:text-white truncate">Abierto · 09:00 - 20:00</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. CONTENIDO PRINCIPAL -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- TOP BAR SUPERIOR -->
+      <header class="h-20 bg-white/80 dark:bg-aura-navy/90 border-b border-aura-goldLight/40 dark:border-aura-cardDarkBorder backdrop-blur-xl px-6 flex items-center justify-between z-20 shrink-0">
+        
+        <!-- Izquierda: Identificador de Shushine Studio -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3 px-4 py-2 rounded-xl border border-aura-gold/30 bg-aura-sand/50 dark:bg-aura-cardDark/80 shadow-sm">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-sm font-semibold text-aura-navy dark:text-aura-sand">Shushine Studio · Salón Central</span>
+            <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold flex items-center gap-1">
+              <i class="ph-fill ph-database text-xs"></i>
+              <span x-text="supabaseStatus">Supabase Conectado</span>
+            </span>
+          </div>
+
+          <!-- Botón de Sincronización Manual en Vivo -->
+          <button 
+            @click="sincronizarManual()" 
+            class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-aura-gold/40 hover:border-aura-gold bg-aura-sand/40 dark:bg-aura-cardDark/80 text-aura-gold text-xs font-semibold hover:bg-aura-gold/15 transition-all shadow-sm"
+            title="Sincronizar datos con Supabase ahora">
+            <i class="ph-bold ph-arrows-clockwise text-sm" :class="{ 'animate-spin': isRefreshing }"></i>
+            <span class="hidden sm:inline">Sincronizar</span>
+          </button>
+
+          <!-- Indicador de Fecha / Hora en vivo -->
+          <div class="hidden md:flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 border-l border-gray-300 dark:border-gray-700 pl-4">
+            <i class="ph ph-clock text-aura-gold"></i>
+            <span x-text="currentTime"></span>
+          </div>
+        </div>
+
+        <!-- Derecha: Acciones Rápidas y Perfil -->
+        <div class="flex items-center space-x-3">
+          
+          <!-- Botón "+ Nueva Cita" (Modal) -->
+          <button 
+            @click="openModal('nuevaCita')"
+            class="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-aura-gold to-aura-goldOld text-aura-navy font-bold text-sm shadow-md hover:shadow-aura-gold/30 hover:scale-[1.02] active:scale-95 transition-all">
+            <i class="ph-bold ph-plus text-base"></i>
+            <span class="hidden sm:inline">Nueva Cita</span>
+          </button>
+
+          <!-- Botón "Punto de Venta Rápido" -->
+          <button 
+            @click="currentTab = 'pos'"
+            class="hidden lg:flex items-center space-x-2 px-3.5 py-2.5 rounded-xl border border-aura-gold/40 text-aura-gold font-semibold text-sm hover:bg-aura-gold/10 transition-all">
+            <i class="ph ph-receipt text-base"></i>
+            <span>Cobro POS</span>
+          </button>
+
+          <!-- Toggle Modo Oscuro / Claro -->
+          <button 
+            @click="darkMode = !darkMode" 
+            class="p-2.5 rounded-xl border border-gray-200 dark:border-aura-cardDarkBorder hover:border-aura-gold text-gray-600 dark:text-gray-300 hover:text-aura-gold transition-colors"
+            title="Cambiar tema">
+            <i :class="darkMode ? 'ph-fill ph-sun text-aura-gold' : 'ph-fill ph-moon text-aura-navy'" class="text-lg"></i>
+          </button>
+
+          <!-- Notificaciones -->
+          <div class="relative" x-data="{ open: false }">
+            <button 
+              @click="open = !open" 
+              class="p-2.5 rounded-xl border border-gray-200 dark:border-aura-cardDarkBorder hover:border-aura-gold text-gray-600 dark:text-gray-300 hover:text-aura-gold transition-colors relative">
+              <i class="ph ph-bell text-lg"></i>
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-aura-terracotta rounded-full ring-2 ring-white dark:ring-aura-navy"></span>
+            </button>
+
+            <!-- Dropdown Notificaciones -->
+            <div 
+              x-show="open" 
+              @click.away="open = false" 
+              x-cloak
+              class="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-gold/20 shadow-2xl p-3 z-50">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100 dark:border-gray-800">
+                <span class="text-xs font-bold uppercase tracking-wider text-aura-gold">Notificaciones</span>
+                <span class="text-[10px] bg-aura-terracotta/20 text-aura-terracotta font-bold px-2 py-0.5 rounded-full">3 Nuevas</span>
+              </div>
+              <div class="space-y-2">
+                <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-aura-gold/5 transition-colors cursor-pointer">
+                  <p class="text-xs font-semibold text-aura-navy dark:text-white">Alerta de Stock Crítico</p>
+                  <p class="text-[11px] text-gray-500">Olaplex Nº 3 tiene solo 2 unidades en Polanco.</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-aura-gold/5 transition-colors cursor-pointer">
+                  <p class="text-xs font-semibold text-aura-navy dark:text-white">Nueva Cita VIP</p>
+                  <p class="text-[11px] text-gray-500">Valeria Martínez agendó Balayage a las 16:00.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar Dueño -->
+          <div class="flex items-center space-x-3 pl-2 border-l border-gray-200 dark:border-gray-800">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" class="w-10 h-10 rounded-xl object-cover border border-aura-gold/40 shadow-sm" alt="Usuario">
+            <div class="hidden xl:block text-left">
+              <p class="text-xs font-bold text-aura-navy dark:text-white leading-tight">Elena de la Mora</p>
+              <p class="text-[10px] font-medium text-aura-gold">Directora General</p>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- ÁREA DE CONTENIDO PRINCIPAL (ROUTER DINÁMICO) -->
+      <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+
+        <!-- ============================================================= -->
+        <!-- PESTAÑA 1: DASHBOARD EJECUTIVO -->
+        <!-- ============================================================= -->
+        <section x-show="currentTab === 'dashboard'" x-transition class="space-y-8">
+          
+          <!-- Banner Superior Bienvenida & Filtro Sucursal -->
+          <div class="rounded-3xl p-6 md:p-8 bg-gradient-to-r from-aura-navy via-aura-cardDark to-aura-navy text-white relative overflow-hidden shadow-2xl border border-aura-gold/30">
+            <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-aura-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-aura-gold/20 border border-aura-gold/40 text-aura-gold text-xs font-bold uppercase tracking-wider mb-3">
+                  <i class="ph-fill ph-crown"></i>
+                  <span>Panel de Gestión Integral · Shushine Studio</span>
+                </span>
+                <h2 class="text-2xl md:text-3xl font-display font-bold leading-tight">
+                  Bienvenida de vuelta, <span class="gold-gradient-text">Elena</span>
+                </h2>
+                <p class="text-sm text-gray-300 mt-1 max-w-xl">
+                  Visualizando citas, caja y clientes en tiempo real sincronizados con la app móvil de clientes.
+                </p>
+              </div>
+
+              <!-- Acciones Rápidas en Banner -->
+              <div class="flex items-center space-x-3 shrink-0">
+                <button @click="openModal('nuevaCita')" class="px-4 py-2.5 rounded-xl bg-aura-gold text-aura-navy font-bold text-sm hover:bg-aura-goldOld transition-all shadow-lg shadow-aura-gold/20">
+                  <i class="ph ph-calendar-plus mr-1.5"></i> Agendar
+                </button>
+                <button @click="currentTab = 'inventario'" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 transition-all">
+                  <i class="ph ph-package mr-1.5"></i> Inventario
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 TARJETAS DE KPIS PRINCIPALES -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- KPI 1: Ventas del Día -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura hover:shadow-gold-glow transition-all">
+              <div class="flex items-center justify-between text-gray-500 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Ventas Hoy</span>
+                <div class="w-9 h-9 rounded-xl bg-aura-gold/15 text-aura-gold flex items-center justify-center">
+                  <i class="ph ph-currency-dollar text-lg"></i>
+                </div>
+              </div>
+              <div class="flex items-baseline space-x-2">
+                <h3 class="text-2xl font-bold font-display text-aura-navy dark:text-white" x-text="kpis.ventas"></h3>
+                <span class="text-xs font-bold text-aura-sage flex items-center">
+                  <i class="ph ph-trend-up mr-0.5"></i> +14.2%
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">vs. mismo día semana pasada</p>
+              <!-- Sparkline Canvas -->
+              <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div id="spark-sales" class="h-9 w-full"></div>
+              </div>
+            </div>
+
+            <!-- KPI 2: Citas Programadas -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura hover:shadow-gold-glow transition-all">
+              <div class="flex items-center justify-between text-gray-500 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Citas Programadas</span>
+                <div class="w-9 h-9 rounded-xl bg-aura-sage/15 text-aura-sageDark flex items-center justify-center">
+                  <i class="ph ph-calendar-check text-lg"></i>
+                </div>
+              </div>
+              <div class="flex items-baseline space-x-2">
+                <h3 class="text-2xl font-bold font-display text-aura-navy dark:text-white" x-text="kpis.citas"></h3>
+                <span class="text-xs font-bold text-aura-sage flex items-center">
+                  <i class="ph ph-check mr-0.5"></i> 92% Cap.
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">18 completadas · 14 en curso · 6 pendientes</p>
+              <!-- Sparkline Canvas -->
+              <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div id="spark-citas" class="h-9 w-full"></div>
+              </div>
+            </div>
+
+            <!-- KPI 3: Clientes Registrados -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura hover:shadow-gold-glow transition-all">
+              <div class="flex items-center justify-between text-gray-500 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Clientes Totales</span>
+                <div class="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
+                  <i class="ph ph-users text-lg"></i>
+                </div>
+              </div>
+              <div class="flex items-baseline space-x-2">
+                <h3 class="text-2xl font-bold font-display text-aura-navy dark:text-white" x-text="kpis.clientes"></h3>
+                <span class="text-xs font-bold text-aura-sage flex items-center">
+                  <i class="ph ph-user-plus mr-0.5"></i> +28 nuevos
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">78% tasa de recurrencia a 90 días</p>
+              <!-- Sparkline Canvas -->
+              <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div id="spark-clientes" class="h-9 w-full"></div>
+              </div>
+            </div>
+
+            <!-- KPI 4: Índice de Satisfacción NPS -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura hover:shadow-gold-glow transition-all">
+              <div class="flex items-center justify-between text-gray-500 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Satisfacción NPS</span>
+                <div class="w-9 h-9 rounded-xl bg-aura-gold/15 text-aura-gold flex items-center justify-center">
+                  <i class="ph-fill ph-star text-lg"></i>
+                </div>
+              </div>
+              <div class="flex items-baseline space-x-2">
+                <h3 class="text-2xl font-bold font-display text-aura-navy dark:text-white">4.9 <span class="text-sm font-normal text-gray-400">/ 5.0</span></h3>
+                <span class="text-xs font-bold text-aura-gold flex items-center">
+                  <i class="ph ph-heart mr-0.5"></i> 98% VIP
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Basado en 342 reseñas verificadas</p>
+              <!-- Sparkline Canvas -->
+              <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div id="spark-nps" class="h-9 w-full"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- FILA 2: CITAS DE LAS PRÓXIMAS 24 HORAS + TOP SERVICIOS -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Citas 24h (2 Columnas) -->
+            <div class="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura">
+              <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-gray-800">
+                <div>
+                  <h3 class="text-lg font-bold font-display text-aura-navy dark:text-white">Agenda en Tiempo Real (Próximas 24h)</h3>
+                  <p class="text-xs text-gray-400">Monitoreo de citas activas por estilista y sucursal</p>
+                </div>
+                <button @click="currentTab = 'agenda'" class="text-xs text-aura-gold hover:underline font-bold flex items-center">
+                  Ver agenda completa <i class="ph ph-arrow-right ml-1"></i>
+                </button>
+              </div>
+
+              <!-- Lista de Citas -->
+              <div class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                <template x-for="cita in filteredCitas" :key="cita.id">
+                  <div class="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-aura-gold/40 transition-all bg-gray-50/50 dark:bg-gray-800/30">
+                    
+                    <!-- Horario & Cliente -->
+                    <div class="flex items-center space-x-3">
+                      <div class="w-16 text-center shrink-0">
+                        <span class="block text-sm font-bold text-aura-navy dark:text-white" x-text="cita.hora"></span>
+                        <span class="text-[10px] text-aura-gold font-semibold block" x-text="cita.fecha"></span>
+                      </div>
+                      <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+                      <img :src="cita.avatar || cita.cliente.avatar" class="w-9 h-9 rounded-full object-cover border border-aura-gold/30" alt="Avatar">
+                      <div>
+                        <div class="flex items-center space-x-2">
+                          <button @click="verFichaCliente(cita.cliente)" class="text-sm font-bold text-aura-navy dark:text-white hover:text-aura-gold transition-colors text-left" x-text="cita.cliente.nombre"></button>
+                          <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-aura-gold/20 text-aura-gold" x-text="cita.cliente.tag"></span>
+                          <span class="text-[10px] font-mono text-gray-400 font-semibold" x-text="cita.codigo"></span>
+                        </div>
+                        <p class="text-xs text-gray-500" x-text="cita.servicio + ' · ' + cita.estilista"></p>
+                      </div>
+                    </div>
+
+                    <!-- Estado & Acciones -->
+                    <div class="flex items-center space-x-3">
+                      <span class="text-xs font-semibold px-2.5 py-1 rounded-full text-center" :class="cita.statusBadgeClass" x-text="cita.statusText"></span>
+                      
+                      <!-- Botones de Acción Rápida -->
+                      <div class="flex items-center space-x-1">
+                        <button 
+                          @click="cambiarEstadoCita(cita.id, 'checkin')" 
+                          x-show="cita.estado === 'confirmada'"
+                          class="p-1.5 rounded-lg text-aura-sage hover:bg-aura-sage/15 transition-colors" 
+                          title="Hacer Check-in">
+                          <i class="ph-bold ph-check text-base"></i>
+                        </button>
+                        <button 
+                          @click="iniciarCobroCita(cita)" 
+                          x-show="cita.estado === 'checkin'"
+                          class="p-1.5 rounded-lg text-aura-gold hover:bg-aura-gold/15 transition-colors" 
+                          title="Cobrar en Caja">
+                          <i class="ph-bold ph-credit-card text-base"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Top Servicios & Facturación (1 Columna) -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-gray-800">
+                  <h3 class="text-lg font-bold font-display text-aura-navy dark:text-white">Servicios Más Vendidos</h3>
+                  <i class="ph ph-chart-bar text-aura-gold text-lg"></i>
+                </div>
+
+                <div class="space-y-4">
+                  <template x-for="item in topServicios" :key="item.nombre">
+                    <div>
+                      <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-aura-navy dark:text-gray-200" x-text="item.nombre"></span>
+                        <span class="text-aura-gold font-bold" x-text="item.facturacion"></span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div class="h-full rounded-full bg-gradient-to-r from-aura-gold to-aura-goldOld transition-all duration-500" :style="`width: ${item.porcentaje}%`"></div>
+                      </div>
+                      <span class="text-[10px] text-gray-400 mt-0.5 block" x-text="item.citasCount + ' citas esta semana'"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Banner de Alertas Stock en Tarjeta -->
+              <div class="mt-6 p-4 rounded-xl bg-aura-terracotta/10 border border-aura-terracotta/20 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-lg bg-aura-terracotta/20 text-aura-terracotta flex items-center justify-center font-bold">
+                    <i class="ph-fill ph-warning"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-aura-terracotta">3 Alertas de Inventario</p>
+                    <p class="text-[11px] text-gray-500">Productos por debajo del stock de seguridad</p>
+                  </div>
+                </div>
+                <button @click="currentTab = 'inventario'" class="text-xs font-bold text-aura-terracotta hover:underline">
+                  Resolver
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- FILA 3: ESTILISTAS Y ESTACIONES DE TRABAJO -->
+          <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-gray-800">
+              <div>
+                <h3 class="text-lg font-bold font-display text-aura-navy dark:text-white">Estilistas & Sillones de Trabajo</h3>
+                <p class="text-xs text-gray-400">Monitoreo de estaciones activas, agenda del día y comisiones</p>
+              </div>
+              <span class="text-xs text-aura-gold font-bold flex items-center">
+                <i class="ph-fill ph-users mr-1"></i> 4 Especialistas Activos
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <template x-for="pro in estilistasStaffCards" :key="pro.id">
+                <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-aura-gold/40 transition-all bg-gray-50/50 dark:bg-gray-800/30 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                      <img :src="pro.avatar" class="w-10 h-10 rounded-full object-cover border border-aura-gold/40" alt="Avatar">
+                      <div>
+                        <h4 class="font-bold text-sm text-aura-navy dark:text-white" x-text="pro.name"></h4>
+                        <p class="text-[11px] text-gray-400" x-text="pro.especialidad"></p>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-[11px] text-gray-500">Estado sillón:</span>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="pro.statusBadgeClass" x-text="pro.status"></span>
+                    </div>
+                    <div class="space-y-1 text-xs">
+                      <div class="flex justify-between text-gray-500">
+                        <span>Citas hoy:</span>
+                        <strong class="text-aura-navy dark:text-white" x-text="pro.citas"></strong>
+                      </div>
+                      <div class="flex justify-between text-gray-500">
+                        <span>Facturación:</span>
+                        <strong class="text-aura-gold font-bold" x-text="pro.sales"></strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <span class="text-[10px] text-aura-sage font-semibold">Turno: 09:00 - 18:00</span>
+                    <button @click="openModal('nuevaCita')" class="text-xs text-aura-gold font-bold hover:underline">Asignar</button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- PESTAÑA 2: AGENDA Y CITAS -->
+        <!-- ============================================================= -->
+        <section x-show="currentTab === 'agenda'" x-transition class="space-y-6" x-cloak>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-bold font-display text-aura-navy dark:text-white">Agenda Unificada</h2>
+              <p class="text-xs text-gray-400">Control de citas, asignaciones y cancelaciones</p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <button 
+                @click="sincronizarManual()" 
+                class="px-3.5 py-2 rounded-xl border border-aura-gold/40 text-aura-gold hover:bg-aura-gold/10 font-semibold text-sm flex items-center gap-1.5 transition-all"
+                title="Actualizar citas desde Supabase">
+                <i class="ph-bold ph-arrows-clockwise text-base" :class="{ 'animate-spin': isRefreshing }"></i>
+                <span>Actualizar</span>
+              </button>
+              <button @click="openModal('nuevaCita')" class="px-4 py-2 rounded-xl bg-aura-gold text-aura-navy font-bold text-sm shadow hover:bg-aura-goldOld transition-all">
+                + Nueva Cita
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla Completa de Citas -->
+          <div class="rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                  <tr>
+                    <th class="p-4">Fecha / Hora</th>
+                    <th class="p-4">Cliente</th>
+                    <th class="p-4">Servicio / Nota</th>
+                    <th class="p-4">Estilista</th>
+                    <th class="p-4">Código Cita</th>
+                    <th class="p-4">Total</th>
+                    <th class="p-4">Estado</th>
+                    <th class="p-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                  <template x-for="cita in filteredCitas" :key="cita.id">
+                    <tr class="hover:bg-aura-gold/5 transition-colors">
+                      <td class="p-4">
+                        <span class="font-bold text-aura-navy dark:text-white block" x-text="cita.hora"></span>
+                        <span class="text-xs text-aura-gold font-medium" x-text="cita.fecha"></span>
+                      </td>
+                      <td class="p-4">
+                        <div class="flex items-center space-x-2">
+                          <span class="font-semibold text-aura-navy dark:text-white cursor-pointer hover:text-aura-gold" @click="verFichaCliente(cita.cliente)" x-text="cita.cliente.nombre"></span>
+                          <span class="text-[9px] px-1.5 py-0.5 rounded bg-aura-gold/20 text-aura-gold font-bold" x-text="cita.cliente.tag"></span>
+                        </div>
+                      </td>
+                      <td class="p-4 text-gray-600 dark:text-gray-300 text-xs" x-text="cita.servicio"></td>
+                      <td class="p-4 text-gray-600 dark:text-gray-300 text-xs font-medium" x-text="cita.estilista"></td>
+                      <td class="p-4 text-aura-gold font-mono text-xs font-bold" x-text="cita.codigo"></td>
+                      <td class="p-4 font-bold text-aura-navy dark:text-white text-xs" x-text="'$' + (cita.total || 0).toFixed(2)"></td>
+                      <td class="p-4">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="cita.statusBadgeClass" x-text="cita.statusText"></span>
+                      </td>
+                      <td class="p-4 text-right space-x-2">
+                        <button @click="cambiarEstadoCita(cita.id, 'checkin')" class="text-xs px-2.5 py-1 rounded bg-aura-sage/20 text-aura-sage font-bold hover:bg-aura-sage/30">Check-in</button>
+                        <button @click="iniciarCobroCita(cita)" class="text-xs px-2.5 py-1 rounded bg-aura-gold/20 text-aura-gold font-bold hover:bg-aura-gold/30">Cobrar</button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- PESTAÑA 3: CLIENTES 360° -->
+        <!-- ============================================================= -->
+        <section x-show="currentTab === 'clientes'" x-transition class="space-y-6" x-cloak>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-bold font-display text-aura-navy dark:text-white">Directorio de Clientes VIP</h2>
+              <p class="text-xs text-gray-400">Historial 360°, fidelidad acumulada y preferencias personalizadas</p>
+            </div>
+            <div class="relative w-full sm:w-80">
+              <input 
+                type="text" 
+                x-model="searchCliente" 
+                placeholder="Buscar por nombre o teléfono..." 
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-cardDark text-sm focus:border-aura-gold focus:outline-none">
+              <i class="ph ph-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
+            </div>
+          </div>
+
+          <!-- Grid de Clientes -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="c in filteredClientesList" :key="c.id">
+              <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura hover:border-aura-gold/50 transition-all flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center space-x-3 mb-4">
+                    <img :src="c.avatar" class="w-12 h-12 rounded-full object-cover border-2 border-aura-gold" alt="Avatar">
+                    <div>
+                      <h4 class="font-bold text-base text-aura-navy dark:text-white" x-text="c.nombre"></h4>
+                      <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-aura-gold" x-text="'Nivel ' + c.nivel"></span>
+                        <span class="text-gray-300 dark:text-gray-600">·</span>
+                        <span class="text-xs text-gray-400" x-text="c.telefono"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 mb-4 bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl">
+                    <div class="flex justify-between"><span>Gasto Total (LTV):</span> <strong class="text-aura-navy dark:text-white" x-text="c.gastoTotal"></strong></div>
+                    <div class="flex justify-between"><span>Puntos Lealtad:</span> <strong class="text-aura-gold font-bold" x-text="c.puntos + ' pts'"></strong></div>
+                    <div class="flex justify-between"><span>Última Visita:</span> <span x-text="c.ultimaVisita"></span></div>
+                    <div class="flex justify-between"><span>Preferencia:</span> <span class="text-aura-sage font-medium" x-text="c.preferencia"></span></div>
+                  </div>
+                </div>
+
+                <button 
+                  @click="verFichaCliente(c)" 
+                  class="w-full py-2.5 rounded-xl border border-aura-gold/40 text-aura-gold hover:bg-aura-gold hover:text-aura-navy font-bold text-xs transition-all">
+                  Ver Expediente 360°
+                </button>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- PESTAÑA 4: PUNTO DE VENTA (POS / CAJA) -->
+        <!-- ============================================================= -->
+        <section x-show="currentTab === 'pos'" x-transition class="space-y-6" x-cloak>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold font-display text-aura-navy dark:text-white">Terminal POS Touch & Checkout</h2>
+              <p class="text-xs text-gray-400">Cobro rápido de servicios y productos con soporte de Split Payment</p>
+            </div>
+            <button @click="limpiarTicket()" class="text-xs text-gray-400 hover:text-aura-terracotta underline">
+              Limpiar Ticket
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Catálogo para Agregar al Ticket (2 Columnas) -->
+            <div class="lg:col-span-2 space-y-4">
+              <!-- Filtro de Categorías -->
+              <div class="flex space-x-2 overflow-x-auto pb-2">
+                <template x-for="cat in ['Todos', 'Estilismo', 'Coloración', 'Spa & Masajes', 'Tratamientos']" :key="cat">
+                  <button 
+                    @click="posCategoria = cat" 
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
+                    :class="posCategoria === cat ? 'bg-aura-gold text-aura-navy' : 'bg-white dark:bg-aura-cardDark border border-gray-200 dark:border-gray-700 text-gray-400'">
+                    <span x-text="cat"></span>
+                  </button>
+                </template>
+              </div>
+
+              <!-- Grid de Items -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <template x-for="item in filteredPosItems" :key="item.id">
+                  <div 
+                    @click="agregarAlTicket(item)" 
+                    class="p-4 rounded-xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder hover:border-aura-gold shadow-sm cursor-pointer hover:scale-[1.02] transition-all flex flex-col justify-between">
+                    <div>
+                      <span class="text-[10px] font-bold text-aura-gold" x-text="item.tipo"></span>
+                      <h4 class="font-bold text-sm text-aura-navy dark:text-white mt-0.5" x-text="item.nombre"></h4>
+                      <p class="text-[11px] text-gray-400" x-text="item.duracion || item.marca"></p>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between">
+                      <span class="font-bold text-sm text-aura-navy dark:text-aura-sand" x-text="'$' + item.precio"></span>
+                      <button class="w-7 h-7 rounded-lg bg-aura-gold/20 text-aura-gold flex items-center justify-center font-bold text-sm">
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Ticket / Carrito Actual (1 Columna) -->
+            <div class="p-6 rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura flex flex-col justify-between h-[600px]">
+              <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100 dark:border-gray-800">
+                  <h3 class="font-bold text-base text-aura-navy dark:text-white">Ticket de Venta #A-8942</h3>
+                  <span class="text-xs text-aura-gold font-bold" x-text="activeBranch.name"></span>
+                </div>
+
+                <!-- Items en Ticket -->
+                <div class="space-y-3 overflow-y-auto max-h-72 pr-1">
+                  <template x-if="ticketItems.length === 0">
+                    <div class="text-center py-12 text-gray-400">
+                      <i class="ph ph-shopping-bag text-3xl mb-2 block opacity-40"></i>
+                      <p class="text-xs">El ticket está vacío.<br>Haz clic en los servicios para agregar.</p>
+                    </div>
+                  </template>
+
+                  <template x-for="(item, idx) in ticketItems" :key="idx">
+                    <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 dark:border-gray-800">
+                      <div>
+                        <p class="font-bold text-aura-navy dark:text-white" x-text="item.nombre"></p>
+                        <p class="text-gray-400" x-text="'$' + item.precio + ' x ' + item.cantidad"></p>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <button @click="reducirItemTicket(idx)" class="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold">-</button>
+                        <span class="font-bold" x-text="item.cantidad"></span>
+                        <button @click="item.cantidad++" class="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold">+</button>
+                        <span class="font-bold text-aura-navy dark:text-white w-14 text-right" x-text="'$' + (item.precio * item.cantidad)"></span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Totales & Botón de Cobro -->
+              <div class="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>Subtotal:</span>
+                  <span x-text="'$' + ticketSubtotal"></span>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>IVA (16%):</span>
+                  <span x-text="'$' + ticketIva"></span>
+                </div>
+                <div class="flex justify-between text-base font-bold text-aura-navy dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <span>Total a Pagar:</span>
+                  <span class="text-aura-gold text-xl" x-text="'$' + ticketTotal"></span>
+                </div>
+
+                <button 
+                  @click="openModal('cobroPos')" 
+                  :disabled="ticketItems.length === 0"
+                  class="w-full py-3.5 rounded-xl bg-gradient-to-r from-aura-gold to-aura-goldOld text-aura-navy font-bold text-sm shadow-md hover:scale-[1.02] active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-3">
+                  Cobrar Ticket ($<span x-text="ticketTotal"></span>)
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- PESTAÑA 5: INVENTARIO DEL SALÓN -->
+        <!-- ============================================================= -->
+        <section x-show="currentTab === 'inventario'" x-transition class="space-y-6" x-cloak>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-bold font-display text-aura-navy dark:text-white">Inventario & Kardex del Salón</h2>
+              <p class="text-xs text-gray-400">Control de existencias de insumos y productos de reventa</p>
+            </div>
+            <button @click="openModal('transferirStock')" class="px-4 py-2 rounded-xl bg-aura-gold text-aura-navy font-bold text-sm shadow hover:bg-aura-goldOld transition-all">
+              <i class="ph-bold ph-plus mr-1.5"></i> Registrar Entrada de Stock
+            </button>
+          </div>
+
+          <!-- Tabla de Productos -->
+          <div class="rounded-2xl bg-white dark:bg-aura-cardDark border border-aura-goldLight/40 dark:border-aura-cardDarkBorder shadow-aura overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                  <tr>
+                    <th class="p-4">Producto & Marca</th>
+                    <th class="p-4">Categoría</th>
+                    <th class="p-4">Stock Actual</th>
+                    <th class="p-4">Stock Mínimo</th>
+                    <th class="p-4">Precio Venta</th>
+                    <th class="p-4">Estado</th>
+                    <th class="p-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                  <template x-for="prod in inventarioList" :key="prod.id">
+                    <tr class="hover:bg-aura-gold/5 transition-colors">
+                      <td class="p-4">
+                        <p class="font-bold text-aura-navy dark:text-white" x-text="prod.nombre"></p>
+                        <p class="text-xs text-gray-400" x-text="prod.marca"></p>
+                      </td>
+                      <td class="p-4 text-gray-500 dark:text-gray-400" x-text="prod.categoria"></td>
+                      <td class="p-4 font-bold text-base" :class="prod.stock_actual <= prod.stock_minimo ? 'text-aura-terracotta' : 'text-emerald-400'" x-text="prod.stock_actual + ' u.'"></td>
+                      <td class="p-4 text-gray-400" x-text="prod.stock_minimo + ' u.'"></td>
+                      <td class="p-4 font-semibold text-aura-gold" x-text="'$' + prod.precio"></td>
+                      <td class="p-4">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full" :class="prod.estadoBadgeClass" x-text="prod.estado"></span>
+                      </td>
+                      <td class="p-4 text-right">
+                        <button @click="reabastecerProducto(prod)" class="text-xs px-3 py-1 rounded-lg bg-aura-gold/15 text-aura-gold font-bold hover:bg-aura-gold hover:text-aura-navy transition-all">
+                          +10 Stock
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODALES INTERACTIVOS -->
+  <!-- ===================================================================== -->
+
+  <!-- MODAL 1: NUEVA CITA -->
+  <div 
+    x-show="modals.nuevaCita" 
+    x-cloak 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    x-transition>
+    <div @click.away="modals.nuevaCita = false" class="bg-white dark:bg-aura-cardDark w-full max-w-lg rounded-3xl p-6 md:p-8 border border-aura-gold/30 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 class="text-xl font-bold font-display text-aura-navy dark:text-white">Agendar Nueva Cita</h3>
+        <button @click="modals.nuevaCita = false" class="text-gray-400 hover:text-aura-terracotta"><i class="ph ph-x text-xl"></i></button>
+      </div>
+
+      <form @submit.prevent="guardarNuevaCita()" class="mt-6 space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Cliente</label>
+          <select x-model="formCita.clienteId" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+            <option value="">Selecciona un cliente...</option>
+            <template x-for="c in clientes" :key="c.id">
+              <option :value="c.id" x-text="c.nombre + ' (' + c.tag + ')'"></option>
+            </template>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Servicio</label>
+            <select x-model="formCita.servicio" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+              <template x-for="s in serviciosList" :key="s.id">
+                <option :value="s.nombre" x-text="s.nombre + ' ($' + s.precio + ')'"></option>
+              </template>
+              <option value="Balayage Signature">Balayage Signature ($28.50)</option>
+              <option value="Corte & Styling Editorial">Corte & Styling ($15.00)</option>
+              <option value="Ritual Spa Facial Oro">Ritual Spa Oro ($25.00)</option>
+              <option value="Manicure Ruso con Gel">Manicure Ruso ($12.00)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Estilista</label>
+            <select x-model="formCita.estilistaId" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+              <template x-for="e in estilistasStaffCards" :key="e.id">
+                <option :value="e.id" x-text="e.name + ' (' + e.especialidad + ')'"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Fecha</label>
+            <input type="date" x-model="formCita.fecha" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Hora</label>
+            <input type="time" x-model="formCita.hora" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Método de Pago Preferente</label>
+          <select x-model="formCita.metodoPago" class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+            <option value="Efectivo">Efectivo en Salón</option>
+            <option value="Tarjeta POS">Tarjeta POS (Terminal)</option>
+            <option value="Transferencia">Transferencia Bancaria</option>
+          </select>
+        </div>
+
+        <div class="pt-4 flex justify-end space-x-3">
+          <button type="button" @click="modals.nuevaCita = false" class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-500 font-bold">Cancelar</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-aura-gold text-aura-navy font-bold hover:bg-aura-goldOld transition-all">Confirmar Cita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EXPEDIENTE CLIENTE 360° -->
+  <div 
+    x-show="modals.cliente360" 
+    x-cloak 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    x-transition>
+    <div @click.away="modals.cliente360 = false" class="bg-white dark:bg-aura-cardDark w-full max-w-xl rounded-3xl p-6 md:p-8 border border-aura-gold/30 shadow-2xl relative" x-show="selectedCliente">
+      <div class="flex items-center space-x-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <img :src="selectedCliente?.avatar" class="w-16 h-16 rounded-2xl object-cover border-2 border-aura-gold" alt="Avatar">
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold font-display text-aura-navy dark:text-white" x-text="selectedCliente?.nombre"></h3>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-aura-gold/20 text-aura-gold" x-text="'Nivel ' + selectedCliente?.nivel"></span>
+          </div>
+          <p class="text-xs text-gray-400" x-text="selectedCliente?.telefono + ' · ' + (selectedCliente?.email || 'valeria@vip.com')"></p>
+        </div>
+      </div>
+
+      <div class="mt-6 space-y-4 text-xs">
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40">
+            <p class="text-gray-400 text-[10px] uppercase font-bold">LTV Acumulado</p>
+            <p class="text-base font-bold text-aura-navy dark:text-white mt-0.5" x-text="selectedCliente?.gastoTotal"></p>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40">
+            <p class="text-gray-400 text-[10px] uppercase font-bold">Puntos Aura</p>
+            <p class="text-base font-bold text-aura-gold mt-0.5" x-text="selectedCliente?.puntos + ' pts'"></p>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40">
+            <p class="text-gray-400 text-[10px] uppercase font-bold">Frecuencia</p>
+            <p class="text-base font-bold text-aura-sage mt-0.5">Cada 21 días</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-aura-sand/50 dark:bg-gray-800/20 border border-aura-gold/20 space-y-2">
+          <p class="font-bold text-aura-navy dark:text-white text-xs uppercase tracking-wider">Notas Clínicas & Fórmulas</p>
+          <p class="text-gray-500"><strong>Fórmula Color:</strong> Wella Illumina 9/60 + 10/1 con revelador 20 vol. Técnica Root Smudge.</p>
+          <p class="text-gray-500"><strong>Alergias / Notas:</strong> Sensibilidad en cuero cabelludo con amoniaco. Bebida favorita: Matcha Latte con leche de avena.</p>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between">
+        <button @click="showToast('🎁 Puntos de lealtad canjeados con éxito')" class="px-4 py-2 rounded-xl border border-aura-gold text-aura-gold font-bold text-xs hover:bg-aura-gold/10">
+          Canjear 500 Puntos
+        </button>
+        <button @click="modals.cliente360 = false" class="px-5 py-2.5 rounded-xl bg-aura-navy text-white dark:bg-aura-gold dark:text-aura-navy font-bold text-xs">
+          Cerrar Expediente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CHECKOUT POS CON SPLIT PAYMENT -->
+  <div 
+    x-show="modals.cobroPos" 
+    x-cloak 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    x-transition>
+    <div @click.away="modals.cobroPos = false" class="bg-white dark:bg-aura-cardDark w-full max-w-md rounded-3xl p-6 md:p-8 border border-aura-gold/30 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+        <div>
+          <h3 class="text-xl font-bold font-display text-aura-navy dark:text-white">Finalizar Cobro</h3>
+          <p class="text-xs text-gray-400">Total a liquidar: <strong class="text-aura-gold font-bold" x-text="'$' + ticketTotal"></strong></p>
+        </div>
+        <button @click="modals.cobroPos = false" class="text-gray-400 hover:text-aura-terracotta"><i class="ph ph-x text-xl"></i></button>
+      </div>
+
+      <div class="mt-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-bold uppercase text-gray-400 mb-2">Método de Pago</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button @click="metodoPago = 'tarjeta'" :class="metodoPago === 'tarjeta' ? 'bg-aura-gold text-aura-navy font-bold border-aura-gold' : 'border-gray-200 dark:border-gray-700 text-gray-500'" class="p-3 rounded-xl border text-center transition-all">
+              <i class="ph ph-credit-card text-lg block mb-1"></i> Tarjeta
+            </button>
+            <button @click="metodoPago = 'efectivo'" :class="metodoPago === 'efectivo' ? 'bg-aura-gold text-aura-navy font-bold border-aura-gold' : 'border-gray-200 dark:border-gray-700 text-gray-500'" class="p-3 rounded-xl border text-center transition-all">
+              <i class="ph ph-money text-lg block mb-1"></i> Efectivo
+            </button>
+            <button @click="metodoPago = 'split'" :class="metodoPago === 'split' ? 'bg-aura-gold text-aura-navy font-bold border-aura-gold' : 'border-gray-200 dark:border-gray-700 text-gray-500'" class="p-3 rounded-xl border text-center transition-all">
+              <i class="ph ph-arrows-split text-lg block mb-1"></i> Split 50/50
+            </button>
+          </div>
+        </div>
+
+        <div x-show="metodoPago === 'split'" class="p-3 rounded-xl bg-aura-gold/10 border border-aura-gold/20 space-y-2">
+          <div class="flex justify-between"><span>Parte 1 (Tarjeta):</span> <strong x-text="'$' + (ticketTotal / 2)"></strong></div>
+          <div class="flex justify-between"><span>Parte 2 (Efectivo):</span> <strong x-text="'$' + (ticketTotal / 2)"></strong></div>
+        </div>
+
+        <button 
+          @click="procesarPagoExitoso()" 
+          class="w-full py-3.5 rounded-xl bg-gradient-to-r from-aura-gold to-aura-goldOld text-aura-navy font-bold text-sm shadow-md hover:scale-[1.02] transition-all mt-4">
+          Emitir Recibo & Cobrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: REGISTRAR ENTRADA DE STOCK (INVENTARIO) -->
+  <div 
+    x-show="modals.transferirStock" 
+    x-cloak 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    x-transition>
+    <div @click.away="modals.transferirStock = false" class="bg-white dark:bg-aura-cardDark w-full max-w-lg rounded-3xl p-6 md:p-8 border border-aura-gold/30 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+        <div>
+          <h3 class="text-xl font-bold font-display text-aura-navy dark:text-white">Registrar Entrada de Stock</h3>
+          <p class="text-xs text-gray-400">Actualizar kardex y existencias físicas de productos</p>
+        </div>
+        <button @click="modals.transferirStock = false" class="text-gray-400 hover:text-aura-terracotta"><i class="ph ph-x text-xl"></i></button>
+      </div>
+
+      <form @submit.prevent="guardarEntradaStock()" class="mt-6 space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Producto</label>
+          <select x-model="formStock.productoId" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+            <option value="">Selecciona un producto...</option>
+            <template x-for="p in inventarioList" :key="p.id">
+              <option :value="p.id" x-text="p.nombre + ' (' + p.marca + ') — Stock actual: ' + p.stock_actual + ' u.'"></option>
+            </template>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Cantidad a Ingresar</label>
+            <input type="number" min="1" max="1000" x-model.number="formStock.cantidad" required class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Tipo de Movimiento</label>
+            <select x-model="formStock.tipo" class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+              <option value="Entrada">Entrada (Compra / Reposición)</option>
+              <option value="Ajuste">Ajuste de Inventario (+)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Motivo / Proveedor / Factura</label>
+          <input type="text" x-model="formStock.motivo" placeholder="Ej: Compra a proveedor, reposición de salón..." class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-aura-navy text-aura-navy dark:text-white">
+        </div>
+
+        <div class="pt-4 flex justify-end space-x-3">
+          <button type="button" @click="modals.transferirStock = false" class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-500 font-bold">Cancelar</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-aura-gold text-aura-navy font-bold hover:bg-aura-goldOld transition-all flex items-center gap-1.5">
+            <i class="ph-bold ph-check"></i>
+            <span>Confirmar Ingreso</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACIONES FLOTANTES -->
+  <div 
+    x-show="toast.visible" 
+    x-cloak 
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 translate-y-4"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-4"
+    class="fixed bottom-6 right-6 z-50 flex items-center space-x-3 px-5 py-3.5 rounded-2xl bg-aura-navy dark:bg-aura-cardDark text-white border border-aura-gold/40 shadow-2xl">
+    <div class="w-7 h-7 rounded-full bg-aura-gold/20 text-aura-gold flex items-center justify-center font-bold">
+      <i class="ph-fill ph-check-circle"></i>
+    </div>
+    <span class="text-sm font-semibold" x-text="toast.message"></span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ESTADO Y LÓGICA DE APLICACIÓN CON ALPINE.JS & SUPABASE EN VIVO -->
+  <!-- ===================================================================== -->
+  <script>
+    const SUPABASE_URL = 'https://acikahicfjtojuvqcvxv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Ad9kpSgsaW45xLZnYhoSAA_v-k6HXUz';
+    let db = null;
+    try {
+      if (window.supabase) {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn('Error inicializando cliente Supabase:', e);
+    }
+
+    function salonApp() {
+      return {
+        darkMode: true,
+        sidebarCollapsed: false,
+        currentTab: 'dashboard',
+        currentTime: '',
+        searchCliente: '',
+        posCategoria: 'Todos',
+        metodoPago: 'tarjeta',
+        selectedCliente: null,
+        supabaseStatus: 'Conectando a Supabase...',
+        isRefreshing: false,
+
+        toast: { visible: false, message: '' },
+        modals: { nuevaCita: false, cliente360: false, cobroPos: false, transferirStock: false },
+
+        // Navegación del Salón
+        navItems: [
+          { id: 'dashboard', label: 'Dashboard Ejecutivo', icon: 'ph-fill ph-squares-four' },
+          { id: 'agenda', label: 'Agenda & Citas', icon: 'ph-fill ph-calendar-blank', badge: '0 hoy', badgeClass: 'bg-aura-sage text-aura-navy' },
+          { id: 'clientes', label: 'Clientes VIP (360°)', icon: 'ph-fill ph-users' },
+          { id: 'pos', label: 'Punto de Venta (POS)', icon: 'ph-fill ph-receipt' },
+          { id: 'inventario', label: 'Inventario del Salón', icon: 'ph-fill ph-package', badge: '0 bajo', badgeClass: 'bg-aura-terracotta text-white' }
+        ],
+
+        // Datos del Dashboard en Vivo
+        kpis: {
+          ventas: 'bash.00',
+          citas: '0 citas',
+          clientes: '0'
+        },
+
+        // Estilistas del Estudio
+        estilistasStaffCards: [],
+
+        // Lista de Citas en Vivo
+        citas: [],
+
+        // Clientes
+        clientes: [],
+
+        // Servicios
+        serviciosList: [],
+
+        // Top Servicios
+        topServicios: [
+          { nombre: 'Balayage Iluminado + Matiz', facturacion: '50.00', porcentaje: 85, citasCount: 10 },
+          { nombre: 'Manicura Rusa & Gel', facturacion: '40.00', porcentaje: 60, citasCount: 20 },
+          { nombre: 'Limpieza Facial Profunda', facturacion: '50.00', porcentaje: 45, citasCount: 10 }
+        ],
+
+        // Items POS
+        posItems: [],
+        ticketItems: [],
+
+        // Inventario del Salón
+        inventarioList: [],
+
+        // Formulario Cita
+        formCita: { clienteId: '', servicioId: '', servicio: 'Balayage Signature', estilistaId: 1, fecha: '', hora: '10:00', metodoPago: 'Efectivo' },
+
+        // Formulario Entrada Stock
+        formStock: { productoId: '', cantidad: 10, tipo: 'Entrada', motivo: 'Compra a proveedor' },
+
+        // Getters Computados
+        get filteredCitas() {
+          return this.citas;
+        },
+
+        get filteredClientesList() {
+          if (!this.searchCliente) return this.clientes;
+          return this.clientes.filter(c => c.nombre.toLowerCase().includes(this.searchCliente.toLowerCase()));
+        },
+
+        get filteredPosItems() {
+          if (this.posCategoria === 'Todos') return this.posItems;
+          return this.posItems.filter(i => i.categoria === this.posCategoria);
+        },
+
+        get ticketSubtotal() {
+          return this.ticketItems.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+        },
+
+        get ticketIva() {
+          return Math.round(this.ticketSubtotal * 0.13 * 100) / 100;
+        },
+
+        get ticketTotal() {
+          return Math.round((this.ticketSubtotal + this.ticketIva) * 100) / 100;
+        },
+
+        // ==========================================
+        // INICIALIZACIÓN Y CARGA DESDE SUPABASE
+        // ==========================================
+        async initApp() {
+          this.updateClock();
+          setInterval(() => this.updateClock(), 1000);
+          this.formCita.fecha = new Date().toISOString().split('T')[0];
+
+          await this.cargarTodoDesdeSupabase();
+          this.conectarRealtime();
+
+          // Sincronización continua de fondo cada 6 segundos para garantizar actualización en vivo
+          setInterval(() => {
+            this.cargarCitasSilencioso();
+          }, 6000);
+
+          setTimeout(() => {
+            this.renderSparklines();
+          }, 150);
+        },
+
+        updateClock() {
+          const now = new Date();
+          this.currentTime = now.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        },
+
+        async cargarTodoDesdeSupabase() {
+          if (!db) {
+            this.supabaseStatus = 'Modo Local (Offline)';
+            return;
+          }
+          try {
+            this.supabaseStatus = 'Cargando datos...';
+            await Promise.all([
+              this.cargarEstilistas(),
+              this.cargarProductos(),
+              this.cargarServicios(),
+              this.cargarClientes(),
+              this.cargarCitas()
+            ]);
+            this.supabaseStatus = 'En Vivo · Supabase';
+            this.actualizarKpis();
+          } catch (err) {
+            console.error('Error cargando datos de Supabase:', err);
+            this.supabaseStatus = 'Error de conexión';
+            this.showToast('⚠️ No se pudo conectar a Supabase');
+          }
+        },
+
+        async cargarEstilistas() {
+          const { data, error } = await db.from('estilistas').select('*').order('id_estilista');
+          if (!error && data) {
+            const avatars = [
+              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
+              'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&h=120&q=80'
+            ];
+            this.estilistasStaffCards = data.map((e, idx) => ({
+              id: e.id_estilista,
+              name: e.nombre_completo,
+              especialidad: e.especialidad_principal || 'Estilista Profesional',
+              status: 'Disponible',
+              statusBadgeClass: 'bg-emerald-500/20 text-emerald-400',
+              sales: '$' + (e.porcentaje_comision || 15) * 10,
+              citas: '0 citas',
+              avatar: e.avatar_url || avatars[idx % avatars.length]
+            }));
+            if (this.estilistasStaffCards.length > 0 && !this.formCita.estilistaId) {
+              this.formCita.estilistaId = this.estilistasStaffCards[0].id;
+            }
+          }
+        },
+
+        async cargarProductos() {
+          const { data, error } = await db.from('productos').select('*, categorias(nombre)').order('id_producto');
+          if (!error && data) {
+            this.inventarioList = data.map(p => ({
+              id: p.id_producto,
+              codigo: p.codigo_producto,
+              nombre: p.nombre,
+              marca: p.marca || 'Shushine Brand',
+              categoria: p.categorias?.nombre || 'General',
+              stock_actual: p.stock_actual,
+              stock_minimo: p.stock_minimo,
+              precio: parseFloat(p.precio),
+              estado: p.stock_actual <= p.stock_minimo ? (p.stock_actual === 0 ? 'Agotado' : 'Stock Bajo') : 'Óptimo',
+              estadoBadgeClass: p.stock_actual <= p.stock_minimo ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+            }));
+
+            // Agregar a items POS
+            const prodPos = this.inventarioList.map(p => ({
+              id: 1000 + p.id,
+              realId: p.id,
+              tipo: 'Producto',
+              categoria: p.categoria,
+              nombre: p.nombre,
+              precio: p.precio,
+              marca: p.marca
+            }));
+            this.posItems = this.posItems.filter(i => i.tipo === 'Servicio').concat(prodPos);
+
+            // Badge inventario crítico
+            const criticos = this.inventarioList.filter(p => p.stock_actual <= p.stock_minimo).length;
+            const navInv = this.navItems.find(n => n.id === 'inventario');
+            if (navInv) {
+              navInv.badge = criticos + ' bajo';
+            }
+
+            if (this.inventarioList.length > 0 && !this.formStock.productoId) {
+              this.formStock.productoId = this.inventarioList[0].id;
+            }
+          }
+        },
+
+        async cargarServicios() {
+          const { data, error } = await db.from('servicios').select('*').order('id_servicio');
+          if (!error && data) {
+            this.serviciosList = data.map(s => ({
+              id: s.id_servicio,
+              codigo: s.codigo_servicio,
+              nombre: s.nombre,
+              precio: parseFloat(s.precio_base),
+              duracion: s.duracion_minutos + 'm'
+            }));
+
+            const srvPos = this.serviciosList.map(s => ({
+              id: s.id,
+              realId: s.id,
+              tipo: 'Servicio',
+              categoria: 'Servicios',
+              nombre: s.nombre,
+              precio: s.precio,
+              duracion: s.duracion
+            }));
+            this.posItems = srvPos.concat(this.posItems.filter(i => i.tipo === 'Producto'));
+
+            if (this.serviciosList.length > 0 && !this.formCita.servicioId) {
+              this.formCita.servicioId = this.serviciosList[0].id;
+              this.formCita.servicio = this.serviciosList[0].nombre;
+            }
+          }
+        },
+
+        async cargarClientes() {
+          const { data, error } = await db.from('clientes').select('id_cliente, nombre_walkin, nivel_fidelidad, puntos_acumulados, usuarios(nombre_completo, correo, telefono)').limit(50);
+          if (!error && data) {
+            const defaultAvatars = [
+              'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
+              'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80',
+              'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=120&h=120&q=80'
+            ];
+            this.clientes = data.map((c, idx) => ({
+              id: c.id_cliente,
+              nombre: c.usuarios?.nombre_completo || c.nombre_walkin || ('Cliente #' + c.id_cliente),
+              email: c.usuarios?.correo || 'cliente@shushine.com',
+              telefono: c.usuarios?.telefono || '+503 7000-0000',
+              tag: 'VIP ' + (c.nivel_fidelidad || 'Bronce'),
+              nivel: c.nivel_fidelidad || 'Bronce',
+              puntos: c.puntos_acumulados || 0,
+              gastoTotal: '$' + ((c.puntos_acumulados || 1) * 2.5),
+              avatar: defaultAvatars[idx % defaultAvatars.length]
+            }));
+
+            if (this.clientes.length > 0 && !this.formCita.clienteId) {
+              this.formCita.clienteId = this.clientes[0].id;
+            }
+          }
+        },
+
+        async cargarCitas(mostrarAlerta = false) {
+          const { data, error } = await db
+            .from('citas')
+            .select('id_cita, codigo_cita, fecha_cita, hora_inicio, estado, total, metodo_pago_preferente, notas_cliente, origen, estilistas(id_estilista, nombre_completo), clientes(id_cliente, nombre_walkin, usuarios(nombre_completo, telefono))')
+            .order('id_cita', { ascending: false })
+            .limit(50);
+
+          if (!error && data) {
+            const previousTopId = this.citas.length > 0 ? this.citas[0].id : null;
+
+            this.citas = data.map((c, idx) => {
+              const nombreCl = c.clientes?.usuarios?.nombre_completo || c.clientes?.nombre_walkin || 'Cliente Shushine';
+              const st = c.estado || 'Pending';
+              let badge = 'bg-amber-500/15 text-amber-400';
+              let badgeText = 'Pendiente';
+
+              if (st.toLowerCase() === 'confirmed' || st.toLowerCase() === 'confirmada') {
+                badge = 'bg-emerald-500/15 text-emerald-400';
+                badgeText = 'Confirmada';
+              } else if (st.toLowerCase() === 'completed' || st.toLowerCase() === 'completada') {
+                badge = 'bg-blue-500/15 text-blue-400';
+                badgeText = 'Completada';
+              } else if (st.toLowerCase() === 'cancelled' || st.toLowerCase() === 'cancelada') {
+                badge = 'bg-red-500/15 text-red-400';
+                badgeText = 'Cancelada';
+              } else if (st.toLowerCase() === 'checkin') {
+                badge = 'bg-amber-500/15 text-amber-400';
+                badgeText = 'En Sala (Check-in)';
+              }
+
+              const defaultAvatars = [
+                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
+                'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80',
+                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=120&h=120&q=80'
+              ];
+
+              return {
+                id: c.id_cita,
+                codigo: c.codigo_cita || ('#SHU-' + c.id_cita),
+                hora: (c.hora_inicio || '10:00').substring(0, 5),
+                fecha: c.fecha_cita,
+                duracion: '45m',
+                avatar: defaultAvatars[idx % defaultAvatars.length],
+                cliente: {
+                  id: c.clientes?.id_cliente || 1,
+                  nombre: nombreCl,
+                  tag: c.origen === 'App' ? 'App Móvil' : 'Cliente',
+                  telefono: c.clientes?.usuarios?.telefono || '+503 7000-0000',
+                  avatar: defaultAvatars[idx % defaultAvatars.length]
+                },
+                servicio: c.notas_cliente || 'Servicio en Salón',
+                estilista: c.estilistas?.nombre_completo || 'Estilista Asignado',
+                estado: st,
+                statusText: badgeText,
+                statusBadgeClass: badge,
+                total: parseFloat(c.total || 0),
+                origen: c.origen || 'Web'
+              };
+            });
+
+            if (previousTopId && this.citas.length > 0 && this.citas[0].id > previousTopId) {
+              this.showToast('✨ ¡Nueva cita recibida desde App!: ' + this.citas[0].codigo + ' (' + this.citas[0].cliente.nombre + ')');
+            } else if (mostrarAlerta) {
+              this.showToast('✅ Citas sincronizadas con Supabase (' + this.citas.length + ' registros)');
+            }
+
+            const navCitas = this.navItems.find(n => n.id === 'agenda');
+            if (navCitas) {
+              navCitas.badge = this.citas.length + ' citas';
+            }
+            this.actualizarKpis();
+          }
+        },
+
+        async cargarCitasSilencioso() {
+          await this.cargarCitas(false);
+        },
+
+        async sincronizarManual() {
+          this.isRefreshing = true;
+          try {
+            await Promise.all([
+              this.cargarCitas(true),
+              this.cargarClientes(),
+              this.cargarProductos()
+            ]);
+          } finally {
+            setTimeout(() => { this.isRefreshing = false; }, 600);
+          }
+        },
+
+        actualizarKpis() {
+          const totalVentas = this.citas
+            .filter(c => c.estado !== 'Cancelled')
+            .reduce((acc, c) => acc + (c.total || 0), 0);
+          this.kpis.ventas = '$' + totalVentas.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          this.kpis.citas = this.citas.length + ' citas';
+          this.kpis.clientes = this.clientes.length.toLocaleString();
+        },
+
+        conectarRealtime() {
+          if (!db) return;
+          try {
+            db.channel('realtime-dashboard')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'citas' }, () => {
+                this.cargarCitas();
+                this.showToast('⚡ Cita actualizada en tiempo real desde Supabase');
+              })
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'productos' }, () => {
+                this.cargarProductos();
+              })
+              .subscribe();
+          } catch (e) {
+            console.warn('Realtime subscription not available:', e);
+          }
+        },
+
+        openModal(nombre) {
+          this.modals[nombre] = true;
+        },
+
+        verFichaCliente(cliente) {
+          this.selectedCliente = cliente;
+          this.modals.cliente360 = true;
+        },
+
+        async cambiarEstadoCita(id, nuevoEstado) {
+          const c = this.citas.find(x => x.id === id);
+          if (c) {
+            c.estado = nuevoEstado;
+            if (nuevoEstado === 'checkin') {
+              c.statusText = 'En Sala (Check-in)';
+              c.statusBadgeClass = 'bg-amber-500/15 text-amber-400';
+            }
+            if (db) {
+              await db.from('citas').update({ estado: nuevoEstado }).eq('id_cita', id);
+            }
+            this.showToast('✅ Estado actualizado para cita ' + c.codigo);
+          }
+        },
+
+        iniciarCobroCita(cita) {
+          this.ticketItems = [
+            { id: 101, nombre: cita.servicio || 'Servicio Agendado', precio: cita.total || 25, cantidad: 1 }
+          ];
+          this.currentTab = 'pos';
+          this.showToast('Cita ' + cita.codigo + ' cargada en Punto de Venta');
+        },
+
+        agregarAlTicket(item) {
+          const exist = this.ticketItems.find(i => i.id === item.id);
+          if (exist) {
+            exist.cantidad++;
+          } else {
+            this.ticketItems.push({ ...item, cantidad: 1 });
+          }
+          this.showToast('Agregado: ' + item.nombre);
+        },
+
+        reducirItemTicket(idx) {
+          if (this.ticketItems[idx].cantidad > 1) {
+            this.ticketItems[idx].cantidad--;
+          } else {
+            this.ticketItems.splice(idx, 1);
+          }
+        },
+
+        limpiarTicket() {
+          this.ticketItems = [];
+          this.showToast('Ticket limpiado');
+        },
+
+        async procesarPagoExitoso() {
+          if (db && this.ticketItems.length > 0) {
+            try {
+              const { data: vData } = await db.from('ventas_pos').insert([{
+                total: this.ticketTotal,
+                subtotal: this.ticketSubtotal,
+                iva: this.ticketIva,
+                metodo_pago: this.metodoPago,
+                estado: 'Completada',
+                notas: 'Cobro procesado desde Panel Web'
+              }]).select();
+
+              if (vData && vData.length > 0) {
+                const idVenta = vData[0].id_venta;
+                for (const it of this.ticketItems) {
+                  await db.from('detalle_ventas_pos').insert([{
+                    id_venta: idVenta,
+                    tipo_item: it.tipo || 'Servicio',
+                    id_servicio: it.tipo === 'Servicio' ? it.realId : null,
+                    id_producto: it.tipo === 'Producto' ? it.realId : null,
+                    cantidad: it.cantidad,
+                    precio_unitario: it.precio,
+                    subtotal: it.precio * it.cantidad
+                  }]);
+                  if (it.tipo === 'Producto' && it.realId) {
+                    await db.from('movimientos_inventario').insert([{
+                      id_producto: it.realId,
+                      tipo_movimiento: 'Venta',
+                      cantidad: it.cantidad,
+                      motivo: 'Venta en mostrador POS',
+                      id_venta: idVenta
+                    }]);
+                  }
+                }
+                this.cargarProductos();
+              }
+            } catch (err) {
+              console.error('Error guardando venta POS:', err);
+            }
+          }
+          this.modals.cobroPos = false;
+          this.limpiarTicket();
+          this.showToast('💳 ¡Cobro exitoso registrado en Supabase!');
+        },
+
+        async guardarNuevaCita() {
+          const clId = parseInt(this.formCita.clienteId) || (this.clientes[0]?.id || 1);
+          const estId = parseInt(this.formCita.estilistaId) || (this.estilistasStaffCards[0]?.id || 1);
+          const cod = '#SHU-2026-' + Math.floor(1000 + Math.random() * 9000);
+          const fechaCita = this.formCita.fecha || new Date().toISOString().split('T')[0];
+          const horaInicio = (this.formCita.hora || '10:00') + ':00';
+          const subtotal = 25.00;
+          const iva = 3.25;
+          const total = 28.25;
+
+          if (db) {
+            try {
+              const { data, error } = await db.from('citas').insert([{
+                codigo_cita: cod,
+                id_cliente: clId,
+                id_estilista: estId,
+                fecha_cita: fechaCita,
+                hora_inicio: horaInicio,
+                hora_fin: '10:45:00',
+                estado: 'Confirmed',
+                metodo_pago_preferente: this.formCita.metodoPago || 'Efectivo',
+                estado_pago: 'Pending',
+                subtotal: subtotal,
+                descuento_puntos: 0.00,
+                iva: iva,
+                total: total,
+                notas_cliente: 'Cita creada desde Panel Web (' + (this.formCita.servicio || 'Servicio General') + ')',
+                origen: 'Web',
+                version: 0
+              }]).select();
+
+              if (error) {
+                console.error('Error insertando cita en Supabase:', error);
+                this.showToast('⚠️ Error al agendar: ' + (error.message || error.details || 'Error de base de datos'));
+                return;
+              }
+              await this.cargarCitas();
+              this.showToast('✨ Cita ' + cod + ' registrada con éxito en Supabase');
+            } catch (err) {
+              console.error('Excepción insertando cita:', err);
+              this.showToast('⚠️ Error: ' + err.message);
+              return;
+            }
+          } else {
+            const cl = this.clientes.find(c => c.id == clId) || this.clientes[0];
+            const est = this.estilistasStaffCards.find(e => e.id == estId) || this.estilistasStaffCards[0];
+            this.citas.unshift({
+              id: Date.now(),
+              codigo: cod,
+              hora: this.formCita.hora,
+              fecha: fechaCita,
+              duracion: '45m',
+              cliente: cl,
+              servicio: this.formCita.servicio || 'Servicio Agendado',
+              estilista: est ? est.name : 'Estilista',
+              estado: 'Confirmed',
+              statusText: 'Confirmada',
+              statusBadgeClass: 'bg-emerald-500/15 text-emerald-400',
+              total: total
+            });
+            this.showToast('✨ Cita ' + cod + ' agregada en modo local');
+          }
+
+          this.modals.nuevaCita = false;
+        },
+
+        async guardarEntradaStock() {
+          const prodId = parseInt(this.formStock.productoId);
+          const cant = parseInt(this.formStock.cantidad) || 1;
+          const motivo = this.formStock.motivo || 'Entrada de stock desde Panel Web';
+          const tipo = this.formStock.tipo || 'Entrada';
+
+          if (!prodId) {
+            this.showToast('⚠️ Por favor selecciona un producto válido');
+            return;
+          }
+
+          if (db) {
+            try {
+              const { data, error } = await db.from('movimientos_inventario').insert([{
+                id_producto: prodId,
+                tipo_movimiento: tipo,
+                cantidad: cant,
+                motivo: motivo
+              }]).select();
+
+              if (error) {
+                console.error('Error insertando movimiento de inventario:', error);
+                this.showToast('⚠️ Error al registrar stock: ' + error.message);
+                return;
+              }
+              await this.cargarProductos();
+              this.showToast(`📦 Entrada registrada: +${cant} unidades ingresadas en Supabase`);
+            } catch (err) {
+              console.error('Excepción registrando stock:', err);
+              this.showToast('⚠️ Error: ' + err.message);
+              return;
+            }
+          } else {
+            const p = this.inventarioList.find(x => x.id === prodId);
+            if (p) {
+              p.stock_actual += cant;
+              if (p.stock_actual > p.stock_minimo) {
+                p.estado = 'Óptimo';
+                p.estadoBadgeClass = 'bg-emerald-500/20 text-emerald-400';
+              }
+            }
+            this.showToast(`📦 +${cant} unidades añadidas localmente`);
+          }
+
+          this.modals.transferirStock = false;
+        },
+
+        async reabastecerProducto(prod) {
+          if (db) {
+            try {
+              const { data, error } = await db.from('movimientos_inventario').insert([{
+                id_producto: prod.id,
+                tipo_movimiento: 'Entrada',
+                cantidad: 10,
+                motivo: 'Entrada rápida +10 desde Panel Web'
+              }]).select();
+
+              if (error) {
+                console.error('Error registrando entrada rápida:', error);
+                this.showToast('⚠️ Error: ' + error.message);
+                return;
+              }
+              await this.cargarProductos();
+              this.showToast('📦 +10 unidades añadidas en Supabase para ' + prod.nombre);
+              return;
+            } catch (err) {
+              console.error('Error registrando entrada:', err);
+            }
+          }
+          prod.stock_actual += 10;
+          if (prod.stock_actual > prod.stock_minimo) {
+            prod.estado = 'Óptimo';
+            prod.estadoBadgeClass = 'bg-emerald-500/20 text-emerald-400';
+          }
+          this.showToast('📦 Stock actualizado: +10 unidades en ' + prod.nombre);
+        },
+
+        showToast(msg) {
+          this.toast.message = msg;
+          this.toast.visible = true;
+          setTimeout(() => { this.toast.visible = false; }, 3500);
+        },
+
+        renderSparklines() {
+          const draw = (id, data, color) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            canvas.width = el.offsetWidth || 180;
+            canvas.height = 36;
+            const ctx = canvas.getContext('2d');
+            const max = Math.max(...data);
+            const min = Math.min(...data);
+            const range = max - min || 1;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            data.forEach((val, i) => {
+              const x = (i / (data.length - 1)) * canvas.width;
+              const y = canvas.height - ((val - min) / range) * (canvas.height - 6) - 3;
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            el.appendChild(canvas);
+          };
+
+          draw('spark-sales', [32, 28, 42, 38, 45, 41, 47], '#D4A574');
+          draw('spark-citas', [25, 29, 31, 35, 32, 36, 38], '#A8C4B8');
+          draw('spark-clientes', [1150, 1180, 1200, 1215, 1225, 1230, 1234], '#C084FC');
+          draw('spark-nps', [4.7, 4.7, 4.8, 4.8, 4.9, 4.8, 4.9], '#D4A574');
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

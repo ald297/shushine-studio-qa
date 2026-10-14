@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Notifications"
+    x:Class="ShushineStudio.Mobile.Presentation.Views.Notifications.NotificationDetailPage"
+    x:DataType="vm:NotificationDetailViewModel"
+    BackgroundColor="{StaticResource Background}"
+    Shell.NavBarIsVisible="false"
+    Title="Detalle de Notificación">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- HEADER -->
+        <Grid Grid.Row="0" BackgroundColor="{StaticResource Surface}" Padding="16,52,16,16">
+            <Grid ColumnDefinitions="44,*,44">
+                <ImageButton
+                    Grid.Column="0"
+                    Source="arrow_left.svg"
+                    Command="{Binding RegresarCommand}"
+                    WidthRequest="28" HeightRequest="28"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="Start" VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="4">
+                    <Label
+                        Text="Notificación"
+                        FontFamily="PlayfairDisplay"
+                        FontSize="18" FontAttributes="Bold"
+                        TextColor="{StaticResource TextPrimary}"
+                        HorizontalOptions="Center" />
+                    <BoxView HeightRequest="2" WidthRequest="40"
+                             BackgroundColor="{StaticResource Secondary}"
+                             HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Grid>
+            <BoxView HeightRequest="1" BackgroundColor="{StaticResource Border}" Margin="0,12,0,0" />
+        </Grid>
+
+        <!-- CUERPO -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,24" Spacing="20">
+
+                <!-- TARJETA PRINCIPAL DE NOTIFICACIÓN -->
+                <Frame
+                    BackgroundColor="{StaticResource Surface}"
+                    BorderColor="{StaticResource Border}"
+                    CornerRadius="16"
+                    Padding="20"
+                    HasShadow="False">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label
+                                Grid.Column="0"
+                                Text="{Binding Categoria, FallbackValue='Aviso del Atelier'}"
+                                FontFamily="PlusJakartaSans"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource Secondary}"
+                                CharacterSpacing="1" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding FechaTexto}"
+                                FontFamily="PlusJakartaSans"
+                                FontSize="11"
+                                TextColor="{StaticResource TextSecondary}" />
+                        </Grid>
+
+                        <Label
+                            Text="{Binding Titulo}"
+                            FontFamily="PlayfairDisplay"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextPrimary}" />
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Border}" Margin="0,4" />
+
+                        <Label
+                            Text="{Binding Mensaje}"
+                            FontFamily="PlusJakartaSans"
+                            FontSize="14"
+                            TextColor="{StaticResource TextPrimary}"
+                            LineHeight="1.4" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- BANNER ESTADO BACKEND -->
+                <Frame
+                    BackgroundColor="#F8F5F1"
+                    BorderColor="{StaticResource Border}"
+                    CornerRadius="14"
+                    Padding="16,14"
+                    HasShadow="False">
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0" Text="ℹ️" FontSize="16" Margin="0,0,8,0" VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="Información del Servicio"
+                                   FontFamily="PlusJakartaSans"
+                                   FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Label
+                            Text="Las notificaciones estarán disponibles cuando el servicio de notificaciones esté conectado al backend de Shunshine Studio."
+                            FontFamily="PlusJakartaSans"
+                            FontSize="12"
+                            TextColor="{StaticResource TextSecondary}"
+                            LineHeight="1.3" />
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BOTÓN INFERIOR -->
+        <Grid Grid.Row="2" BackgroundColor="{StaticResource Surface}" Padding="20,14,20,24">
+            <Button
+                Text="Volver al Centro de Notificaciones"
+                Command="{Binding RegresarCommand}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HeightRequest="48"
+                FontSize="14"
+                CornerRadius="12" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

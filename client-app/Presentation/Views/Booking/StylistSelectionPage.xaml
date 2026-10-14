@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShushineStudio.Mobile.Presentation.ViewModels.Booking"
+             xmlns:entities="clr-namespace:ShushineStudio.Mobile.Domain.Entities"
+             x:Class="ShushineStudio.Mobile.Presentation.Views.Booking.StylistSelectionPage"
+             x:DataType="vm:StylistSelectionViewModel"
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="false">
+
+    <Grid RowDefinitions="*, Auto">
+        
+        <!-- Contenido Desplazable -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="16, 12, 16, 24" Spacing="16">
+                
+                <!-- Barra Superior con Botón Atrás y Paso del Flujo -->
+                <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center" Margin="0, 4, 0, 4">
+                    <!-- Botón Atrás Circular -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 20"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding VolverCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="←"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Título de Pantalla -->
+                    <Label Grid.Column="1"
+                           Text="Seleccionar Profesional"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+
+                    <!-- Indicador de Paso -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            Padding="10, 4"
+                            VerticalOptions="Center">
+                        <Label Text="Paso 2 de 4"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Secondary}" />
+                    </Border>
+                </Grid>
+
+                <!-- Tarjeta Resumen del Servicio Seleccionado -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="16, 12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="3">
+                            <Label Text="TRATAMIENTO SELECCIONADO" 
+                                   FontSize="10" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Secondary}" />
+                            <Label Text="{Binding Servicio.Nombre}" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="{Binding Servicio.DuracionFormateada, StringFormat='⏱ {0} en Atelier'}" 
+                                   FontSize="12" 
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" 
+                               Text="{Binding Servicio.PrecioFormateado}" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource Primary}" 
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Título de Sección -->
+                <VerticalStackLayout Spacing="3">
+                    <Label Text="¿Quién te gustaría que te atienda?" 
+                           Style="{StaticResource TitleLabelStyle}" 
+                           FontSize="18" />
+                    <Label Text="Elige una especialista de nuestro equipo o deja que asignemos la primera disponibilidad." 
+                           Style="{StaticResource CaptionLabelStyle}" 
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
+
+                <!-- Opción 1: Cualquier Estilista Disponible (Fast Track) -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Padding="16"
+                        StrokeThickness="1.5">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding EsCualquieraDisponible}" Value="True">
+                            <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource Background}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border" Binding="{Binding EsCualquieraDisponible}" Value="False">
+                            <Setter Property="Stroke" Value="{StaticResource Border}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+
+                    <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
+                        <!-- Icono Rápido -->
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 20"
+                                Stroke="{StaticResource Secondary}"
+                                StrokeThickness="1"
+                                BackgroundColor="{StaticResource SecondaryLight}"
+                                WidthRequest="44"
+                                HeightRequest="44"
+                                VerticalOptions="Center">
+                            <Label Text="⚡️" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+
+                        <!-- Textos -->
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Cualquier estilista disponible" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="Asignación automática más rápida para conseguir el horario más próximo." 
+                                   FontSize="12" 
+                                   TextColor="{StaticResource TextSecondary}" 
+                                   LineHeight="1.2" />
+                        </VerticalStackLayout>
+
+                        <!-- Indicador de Selección -->
+                        <Border Grid.Column="2" 
+                                StrokeShape="RoundRectangle 12" 
+                                Padding="10, 6"
+                                VerticalOptions="Center">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding EsCualquieraDisponible}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding EsCualquieraDisponible}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                    <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label FontSize="11" FontAttributes="Bold">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding EsCualquieraDisponible}" Value="True">
+                                        <Setter Property="Text" Value="✓ Elegido" />
+                                        <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding EsCualquieraDisponible}" Value="False">
+                                        <Setter Property="Text" Value="Elegir" />
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </Grid>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ElegirCualquieraCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+
+                <!-- Separador de Lista -->
+                <Label Text="O selecciona una profesional de nuestro equipo:" 
+                       FontSize="13" 
+                       FontAttributes="Bold" 
+                       TextColor="{StaticResource TextSecondary}" 
+                       Margin="0, 4, 0, 0" />
+
+                <!-- Lista de Estilistas -->
+                <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Estilistas}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:EstilistaItem">
+                            <Border StrokeShape="RoundRectangle 16" 
+                                    Padding="14"
+                                    StrokeThickness="1.5">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="True">
+                                        <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                        <Setter Property="BackgroundColor" Value="{StaticResource Background}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="False">
+                                        <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                        <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+
+                                <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
+                                    
+                                    <!-- Avatar con Iniciales o Foto -->
+                                    <Border Grid.Column="0" 
+                                            StrokeShape="RoundRectangle 24" 
+                                            HeightRequest="48" 
+                                            WidthRequest="48" 
+                                            Stroke="{StaticResource Border}"
+                                            StrokeThickness="1"
+                                            BackgroundColor="{StaticResource BackgroundSecondary}"
+                                            VerticalOptions="Center">
+                                        <Grid>
+                                            <Image Source="{Binding Estilista.AvatarUrl}" 
+                                                   Aspect="AspectFill" 
+                                                   IsVisible="{Binding Estilista.AvatarUrl, Converter={x:Null}}" />
+                                            <Label Text="{Binding Estilista.Iniciales}" 
+                                                   FontSize="15" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="{StaticResource Primary}" 
+                                                   HorizontalOptions="Center" 
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Datos de la Profesional -->
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding Estilista.NombreCompleto}" 
+                                               FontSize="15" 
+                                               FontAttributes="Bold" 
+                                               TextColor="{StaticResource TextPrimary}" />
+                                        <Label Text="{Binding Estilista.Especialidad}" 
+                                               FontSize="12" 
+                                               TextColor="{StaticResource TextSecondary}" />
+                                        <HorizontalStackLayout Spacing="4" Margin="0, 2, 0, 0">
+                                            <Label Text="✨" FontSize="11" VerticalOptions="Center" />
+                                            <Label Text="Especialista de Atelier" 
+                                                   FontSize="11" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource Secondary}" 
+                                                   VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- Botón / Indicador de Selección -->
+                                    <Border Grid.Column="2" 
+                                            StrokeShape="RoundRectangle 12" 
+                                            Padding="10, 6"
+                                            VerticalOptions="Center">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="Stroke" Value="{StaticResource Primary}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Seleccionado}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+                                                <Setter Property="Stroke" Value="{StaticResource Border}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label FontSize="11" FontAttributes="Bold">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="True">
+                                                    <Setter Property="Text" Value="✓ Seleccionada" />
+                                                    <Setter Property="TextColor" Value="{StaticResource TextLight}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Seleccionado}" Value="False">
+                                                    <Setter Property="Text" Value="Elegir" />
+                                                    <Setter Property="TextColor" Value="{StaticResource Primary}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </Grid>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StylistSelectionViewModel}}, Path=SeleccionarEstilistaCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Barra Inferior Fija de Navegación -->
+        <Border Grid.Row="1" 
+                BackgroundColor="{StaticResource Surface}" 
+                StrokeThickness="1"
+                Stroke="{StaticResource Border}"
+                Padding="20, 12">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="1">
+                    <Label Text="Atención con:" 
+                           Style="{StaticResource CaptionLabelStyle}" 
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="{Binding NombreProfesionalElegido}" 
+                           FontSize="14" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1"
+                        Text="Continuar a Fecha ➔" 
+                        Command="{Binding ContinuarAFechaHoraCommand}" 
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="48"
+                        Padding="22, 0"
+                        FontSize="15" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>
