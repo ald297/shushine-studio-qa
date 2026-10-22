@@ -125,10 +125,10 @@ En cumplimiento con la cláusula 5.3 de la norma ISO 9001:2015 (Roles, responsab
 
 | Integrante | Rol Técnico Asignado | Módulos y Secciones a su Cargo | Casos de Prueba Diseñados |
 | :--- | :--- | :--- | :---: |
-| Alex Fernando Alfaro Diaz | QA Lead & Estrategia Metodológica | Secciones 1, 2.3, 2.4, 2.5, 3 y Gobernanza: Marco normativo ISO 29119, pirámide de pruebas, criterios de entrada/salida (DoD), clasificación de errores (S1-S4), gestión de riesgos cuantitativos con SLAs y aprobación final. | Gobernanza Global |
+| Alex Fernando Alfaro Diaz | QA Lead, Gobernanza, Backend Unit Tests & Rendimiento | Secciones 1, 2.3, 2.4, 2.5, 3 y Gobernanza; Suite de 56 Pruebas Unitarias Java (JUnit 5 + Mockito) y Pruebas de Carga/Rendimiento (Grafana k6). | Gobernanza Global & RNF02 |
 | Cristian Jordan | QA Frontend Móvil & Usabilidad Android | Secciones 1.1.1 (MOV), 4 y 2.1 (CP-MOB): Plataforma móvil Android, herramientas ADB y Scrcpy, y diseño exhaustivo de los 6 casos de prueba del cliente móvil .NET MAUI. | CP-MOB-01 al CP-MOB-06 (6 casos) |
 | Rodrigo Cortez | QA Panel Web & Operación de Salón | Secciones 1.1.1 (WEB), 4 y 2.1 (CP-WEB): Plataforma web Chrome DevTools, auditoría de red REST, gestión operativa de agenda, inventario del salón y los 6 casos de prueba del panel administrativo. | CP-WEB-01 al CP-WEB-06 (6 casos) |
-| Cornelio Martinez | QA Backend, Integración & Seguridad RLS | Secciones 1.1.1 (INT/SEC), 4.2 y 2.1 (CP-INT/SEC): Datos de línea base, pruebas de sincronización omnicanal en tiempo real, canales WebSockets Supabase y auditoría de directivas Row Level Security (RLS). | CP-INT-01 al CP-INT-03 y CP-SEC-01 (4 casos) |
+| Cornelio Martinez | QA Integración API REST (Postman) & Seguridad RLS | Secciones 1.1.1 (INT/SEC), 4.2 y 2.1 (CP-INT/SEC): Colección Postman de 33 endpoints, pruebas de sincronización omnicanal y auditoría de directivas Row Level Security (RLS). | CP-INT-01 al CP-INT-03 y CP-SEC-01 (4 casos) |
 
 #### Matriz de Asignación de Responsabilidades (RACI)
 

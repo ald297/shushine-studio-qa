@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,16 +42,60 @@ public class CitaService implements ICitaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    private final Random random = new Random();
+    @Autowired
+    private ReservaJdbcRepository reservaJdbcRepository;
+
+    @Autowired
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CitaSalida crearCita(CitaGuardar citaGuardar, String userLogin) {
-        // 1. Obtener o crear entidad Cliente para el usuario autenticado
-        Usuario usuario = usuarioRepository.findByLogin(userLogin)
+    public CitaSalida crearCita(CitaGuardar dto, String userLogin) {
+        if (dto.getServicioIds() == null || dto.getServicioIds().isEmpty()) {
+            throw new IllegalArgumentException("Debe seleccionar al menos un servicio para la cita");
+        }
+        if (dto.getEstilistaId() == null || dto.getFechaCita() == null || dto.getHoraInicio() == null) {
+            throw new IllegalArgumentException("Debe indicar estilista, fecha y hora de inicio");
+        }
+        var contexto = reservaJdbcRepository.preparar(dto, userLogin)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no autenticado"));
+        // Rare legacy profiles retain the guarded, transactional creation path.
+        if (contexto.clienteId() == null) {
+            var tx = new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+            tx.setIsolationLevel(org.springframework.transaction.TransactionDefinition.ISOLATION_READ_COMMITTED);
+            return tx.execute(status -> crearCitaConPerfilLegado(dto, userLogin));
+        }
+        if (contexto.estilistaId() == null) throw new IllegalArgumentException("Estilista no encontrado");
+        if (!Boolean.TRUE.equals(contexto.estilistaActivo())) {
+            throw new IllegalArgumentException("El estilista seleccionado no se encuentra activo");
+        }
+        var servicios = contexto.servicios();
+        if (servicios.isEmpty()) throw new IllegalArgumentException("Los servicios seleccionados no existen");
+        int duracion = servicios.stream().mapToInt(ReservaJdbcRepository.ServicioDato::duracionMinutos).sum();
+        LocalTime fin = calcularHoraFin(dto.getHoraInicio(), duracion);
+        BigDecimal subtotal = servicios.stream().map(ReservaJdbcRepository.ServicioDato::precioBase)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal iva = subtotal.multiply(new BigDecimal("0.13")).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal total = subtotal.add(iva);
+        var guardada = reservaJdbcRepository.insertar(dto, contexto, fin, subtotal, iva, total);
+        return CitaSalida.builder().id(guardada.id()).codigoCita(guardada.codigo()).clienteId(contexto.clienteId())
+                .clienteNombre(contexto.nombre() + " " + (contexto.apellido() != null ? contexto.apellido() : ""))
+                .clienteTelefono(contexto.telefono()).estilistaId(contexto.estilistaId()).estilistaNombre(contexto.estilistaNombre())
+                .fechaCita(dto.getFechaCita()).horaInicio(dto.getHoraInicio()).horaFin(fin).estado("Confirmed")
+                .subtotal(subtotal).iva(iva).total(total)
+                .metodoPagoPreferente(dto.getMetodoPagoPreferente() != null ? dto.getMetodoPagoPreferente() : "Efectivo")
+                .estadoPago("Pending").notasCliente(dto.getNotasCliente())
+                .serviciosNombres(servicios.stream().map(ReservaJdbcRepository.ServicioDato::nombre).toList()).build();
+    }
 
-        Cliente cliente = clienteRepository.findByUsuarioId(usuario.getId()).orElseGet(() -> {
+    private CitaSalida crearCitaConPerfilLegado(CitaGuardar citaGuardar, String userLogin) {
+        reservaJdbcRepository.bloquearAgenda(citaGuardar.getEstilistaId(), citaGuardar.getFechaCita());
+        // 1. Obtener o crear entidad Cliente para el usuario autenticado
+        Cliente cliente = clienteRepository.findByUsuarioLogin(userLogin).orElseGet(() -> {
+            // Solo los perfiles antiguos sin Cliente necesitan serializar su creación.
+            Usuario usuario = usuarioRepository.findByLoginForUpdate(userLogin)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no autenticado"));
+            Cliente existente = clienteRepository.findByUsuarioLogin(userLogin).orElse(null);
+            if (existente != null) return existente;
             Cliente nuevoCliente = Cliente.builder()
                     .usuario(usuario)
                     .nombreWalkin(usuario.getNombre() + (usuario.getApellido() != null ? " " + usuario.getApellido() : ""))
@@ -84,19 +127,10 @@ public class CitaService implements ICitaService {
         int duracionTotalMinutos = servicios.stream()
                 .mapToInt(Servicio::getDuracionMinutos)
                 .sum();
-        LocalTime horaFinCalculada = citaGuardar.getHoraInicio().plusMinutes(duracionTotalMinutos);
+        LocalTime horaFinCalculada = calcularHoraFin(citaGuardar.getHoraInicio(), duracionTotalMinutos);
 
-        // 4. Bloqueo y Verificación de Solapamiento Concurrente (Prevención de Doble Reserva)
-        boolean solapado = citaRepository.existeSolapamiento(
-                estilista.getId(),
-                citaGuardar.getFechaCita(),
-                citaGuardar.getHoraInicio(),
-                horaFinCalculada
-        );
-
-        if (solapado) {
-            throw new IllegalStateException("El estilista seleccionado ya no tiene disponible la franja horaria solicitada.");
-        }
+        // PostgreSQL comprueba el solapamiento atómicamente al insertar (SQLSTATE 23P01).
+        // Un SELECT previo no evita carreras y añade un viaje de red a cada reserva.
 
         // 5. Cálculo Financiero (Subtotal, IVA 13%, Total)
         BigDecimal subtotal = servicios.stream()
@@ -146,11 +180,7 @@ public class CitaService implements ICitaService {
     @Override
     @Transactional(readOnly = true)
     public List<CitaSalida> obtenerMisCitas(String userLogin) {
-        Cliente cliente = clienteRepository.findByUsuarioLogin(userLogin).orElse(null);
-        if (cliente == null) {
-            return List.of();
-        }
-        return citaRepository.findByClienteIdOrderByFechaCitaDescHoraInicioDesc(cliente.getId()).stream()
+        return citaRepository.findByClienteUsuarioLoginOrderByFechaCitaDescHoraInicioDesc(userLogin).stream()
                 .map(this::mapToSalida)
                 .collect(Collectors.toList());
     }
@@ -176,8 +206,12 @@ public class CitaService implements ICitaService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public CitaSalida crearCitaWalkin(com.shushinestudio.dtos.cita.CitaWalkinGuardar walkinGuardar) {
+        if (walkinGuardar.getEstilistaId() == null || walkinGuardar.getFechaCita() == null || walkinGuardar.getHoraInicio() == null) {
+            throw new IllegalArgumentException("Debe indicar estilista, fecha y hora de inicio");
+        }
+        reservaJdbcRepository.bloquearAgenda(walkinGuardar.getEstilistaId(), walkinGuardar.getFechaCita());
         // 1. Crear cliente Walk-in
         Cliente clienteWalkin = Cliente.builder()
                 .nombreWalkin(walkinGuardar.getNombreCliente())
@@ -201,18 +235,9 @@ public class CitaService implements ICitaService {
             throw new IllegalArgumentException("Debe seleccionar al menos un servicio válido");
         }
         int duracion = servicios.stream().mapToInt(Servicio::getDuracionMinutos).sum();
-        LocalTime horaFin = walkinGuardar.getHoraInicio().plusMinutes(duracion);
+        LocalTime horaFin = calcularHoraFin(walkinGuardar.getHoraInicio(), duracion);
 
-        // 4. Verificación de colisión
-        boolean solapado = citaRepository.existeSolapamiento(
-                estilista.getId(),
-                walkinGuardar.getFechaCita(),
-                walkinGuardar.getHoraInicio(),
-                horaFin
-        );
-        if (solapado) {
-            throw new IllegalStateException("El estilista ya tiene una cita reservada en el horario solicitado.");
-        }
+        // La restricción de exclusión de PostgreSQL también protege reservas Walk-in.
 
         // 5. Cálculos financieros
         BigDecimal subtotal = servicios.stream()
@@ -341,9 +366,16 @@ public class CitaService implements ICitaService {
         };
     }
 
+    private LocalTime calcularHoraFin(LocalTime inicio, int duracion) {
+        if (inicio == null || duracion <= 0 || duracion >= 24 * 60 || !inicio.plusMinutes(duracion).isAfter(inicio)) {
+            throw new IllegalArgumentException("La cita debe tener una duración positiva y finalizar el mismo día.");
+        }
+        return inicio.plusMinutes(duracion);
+    }
+
     private String generarCodigoCita(LocalDate fecha) {
         int anio = fecha != null ? fecha.getYear() : LocalDate.now().getYear();
-        int numero = 1000 + random.nextInt(9000);
+        long numero = citaRepository.siguienteNumeroCodigo();
         return String.format("SHU-%d-%04d", anio, numero);
     }
 

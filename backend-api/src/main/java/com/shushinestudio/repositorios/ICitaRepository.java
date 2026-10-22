@@ -1,7 +1,9 @@
 package com.shushinestudio.repositorios;
 
 import com.shushinestudio.modelos.Cita;
+import com.shushinestudio.dtos.disponibilidad.FranjaOcupada;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,6 +24,16 @@ public interface ICitaRepository extends JpaRepository<Cita, Integer> {
     List<Cita> findByFechaCitaAndEstilistaIdOrderByHoraInicioAsc(LocalDate fechaCita, Integer estilistaId);
 
     List<Cita> findByClienteIdOrderByFechaCitaDescHoraInicioDesc(Integer clienteId);
+
+    @EntityGraph(attributePaths = {"cliente", "cliente.usuario", "cliente.usuario.rol", "estilista", "servicios", "servicios.servicio"})
+    List<Cita> findByClienteUsuarioLoginOrderByFechaCitaDescHoraInicioDesc(String login);
+
+    @Query(value = "SELECT nextval('public.cita_codigo_seq')", nativeQuery = true)
+    long siguienteNumeroCodigo();
+
+    @Query("SELECT new com.shushinestudio.dtos.disponibilidad.FranjaOcupada(c.horaInicio, c.horaFin) " +
+           "FROM Cita c WHERE c.estilista.id = :estilistaId AND c.fechaCita = :fecha AND c.estado <> 'Cancelled'")
+    List<FranjaOcupada> findFranjasOcupadas(@Param("estilistaId") Integer estilistaId, @Param("fecha") LocalDate fecha);
 
     long countByFechaCita(LocalDate fechaCita);
 

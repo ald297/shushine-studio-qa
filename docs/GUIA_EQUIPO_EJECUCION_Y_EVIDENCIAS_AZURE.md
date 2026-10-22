@@ -1,6 +1,9 @@
+
 # Guía de Ejecución de Pruebas y Evidencias en Azure DevOps
+
 ### Proyecto: Shushine Studio — Ecosistema Omnicanal
-**Equipo:** Alex Alfaro, Cristian Jordan, Rodrigo Cortez, Cornelio Martinez  
+
+**Equipo:** Alex Alfaro, Cristian Jordan, Rodrigo Cortez, Cornelio Martinez
 **Plataforma del Proyecto:** [https://dev.azure.com/lalafaro6/Testeo](https://dev.azure.com/lalafaro6/Testeo)
 
 ---
@@ -9,7 +12,7 @@
 
 Para no perderse, hay que entender una regla fundamental:
 
-> **Azure DevOps NO ejecuta tu aplicación ni tu código por arte de magia.**  
+> **Azure DevOps NO ejecuta tu aplicación ni tu código por arte de magia.**
 > Azure DevOps es la **libreta de registro o panel de control** donde el equipo anota los resultados, adjunta las fotos de comprobación y donde el docente revisa la calidad del proyecto.
 
 La prueba **la haces tú en tu computadora o teléfono**, y luego registras el resultado en Azure DevOps:
@@ -30,12 +33,12 @@ La prueba **la haces tú en tu computadora o teléfono**, y luego registras el r
 
 La evidencia es simplemente **una captura de pantalla (screenshot)** o archivo que demuestra que la prueba se realizó y funcionó (o falló).
 
-| Tipo de Prueba | ¿Dónde se ejecuta? | ¿Qué captura de pantalla se toma como evidencia? |
-| :--- | :--- | :--- |
-| **Pruebas Unitarias Backend** | En el IDE (VS Code / IntelliJ) o terminal | La consola con `BUILD SUCCESS` o la barra verde de JUnit con los tests pasados. |
-| **Pruebas de la App Móvil** | En el emulador de Android o teléfono físico | Pantallazos del celular mostrando la app funcionando (login, cita agendada, navegación). |
-| **Pruebas del Panel Web** | En Google Chrome / Firefox | Captura del navegador mostrando la pantalla administrativa correspondiente (agenda, inventario, métricas). |
-| **Pruebas de API REST** | En **Postman** o Thunder Client | Captura de Postman mostrando la URL, el `Status: 200 OK` (o 201) y la respuesta JSON devuelta. |
+| Tipo de Prueba                      | ¿Dónde se ejecuta?                          | ¿Qué captura de pantalla se toma como evidencia?                                                          |
+| :---------------------------------- | :-------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| **Pruebas Unitarias Backend** | En el IDE (VS Code / IntelliJ) o terminal     | La consola con `BUILD SUCCESS` o la barra verde de JUnit con los tests pasados.                           |
+| **Pruebas de la App Móvil**  | En el emulador de Android o teléfono físico | Pantallazos del celular mostrando la app funcionando (login, cita agendada, navegación).                   |
+| **Pruebas del Panel Web**     | En Google Chrome / Firefox                    | Captura del navegador mostrando la pantalla administrativa correspondiente (agenda, inventario, métricas). |
+| **Pruebas de API REST**       | En **Postman** o Thunder Client         | Captura de Postman mostrando la URL, el `Status: 200 OK` (o 201) y la respuesta JSON devuelta.            |
 
 ---
 
@@ -44,18 +47,22 @@ La evidencia es simplemente **una captura de pantalla (screenshot)** o archivo q
 Cada vez que vayas a documentar una prueba en Azure DevOps, sigue estos 5 sencillos pasos:
 
 ### Paso 1: Haz la prueba en tu máquina
+
 Ejecuta la prueba en tu entorno (corre el test, haz la petición en Postman o usa la app). Toma una captura de pantalla y guárdala en tu máquina (ejemplo: `evidencia_login.png`).
 
 ### Paso 2: Entra a Azure DevOps
+
 1. Entra a [https://dev.azure.com/lalafaro6/Testeo](https://dev.azure.com/lalafaro6/Testeo).
 2. En el menú de la izquierda ve a **`Boards -> Boards`**.
 3. Busca la tarjeta de la Historia de Usuario (PBI) que te corresponde. Verás que tiene un icono de matraz (`⚗️`) y abajo el listado de los casos de prueba.
 
 ### Paso 3: Abre el Test Runner
+
 1. En la prueba que realizaste, haz clic sobre los tres puntos `...` de la tarjeta y selecciona **`Run`** (o ve a `Test Plans -> Test plans`, marca la casilla de la prueba y pulsa **`Run for web application`**).
 2. Se abrirá la ventanita emergente del **Test Runner** (la misma ventana gris que mostró el docente en el video).
 
 ### Paso 4: Evalúa el Paso y Adjunta la Evidencia
+
 1. Lee lo que dice en pantalla:
    * **`Action`:** La acción o datos de entrada que debías probar.
    * **`Expected result`:** El resultado que se esperaba obtener.
@@ -70,6 +77,7 @@ Ejecuta la prueba en tu entorno (corre el test, haz la petición en Postman o us
    * Haz clic en el botón **`Create bug`** de la barra superior. Azure DevOps creará un error vinculado automáticamente con la foto y los pasos.
 
 ### Paso 5: Guardar y Finalizar
+
 * Haz clic en **`Save and Close`** (arriba a la izquierda del Test Runner).
 * Al regresar al tablero de `Boards`, verás que el caso de prueba ya no está azul, sino que tiene un **check verde** o una **marca roja**.
 
@@ -80,9 +88,11 @@ Ejecuta la prueba en tu entorno (corre el test, haz la petición en Postman o us
 Muchos se confunden pensando que el pipeline hace todas las pruebas del proyecto. No es así.
 
 ### ¿Qué es un Pipeline?
+
 Es un **robot automático en la nube de Azure**. Cada vez que alguien sube cambios al repositorio con `git push`, un servidor de Microsoft en la nube clona el proyecto y compila/prueba el código automáticamente.
 
 ### ¿Qué pruebas del Backlog abarca nuestro Pipeline (`azure-pipelines.yml`)?
+
 * **Abarca las Pruebas Unitarias de Backend (PBI #228 - Alex):**
   * En el archivo `azure-pipelines.yml`, la etapa `UnitTesting` levanta un entorno con **Java 21 LTS** y ejecuta:
     ```bash
@@ -98,6 +108,7 @@ Es un **robot automático en la nube de Azure**. Cada vez que alguien sube cambi
   * Los resultados se publican automáticamente en la pestaña **`Pipelines -> Tests`** con gráficos de pastel y porcentaje de éxito.
 
 ### ¿Por qué las demás pruebas NO corren en el pipeline?
+
 * **La App Móvil (.NET MAUI - Cristian):** Requiere un usuario tocando la pantalla del celular o emulador para validar navegación, gestos y diseño.
 * **El Panel Web (Rodrigo):** Requiere interactuar visualmente con el navegador (abrir modales, seleccionar fechas en el calendario).
 * **Las APIs REST en Render (Cornelio):** Requieren validar los endpoints en vivo contra la base de datos real en la nube.
@@ -110,6 +121,7 @@ Es un **robot automático en la nube de Azure**. Cada vez que alguien sube cambi
 Cada integrante tiene tareas y casos de prueba específicos ya asignados en el tablero de Azure DevOps:
 
 ### 👤 Alex Alfaro (Backend y Lógica Móvil)
+
 * **PBIs Asignados:**
   * `#160`: Verificación de Modelos y ViewModels de Cliente (.NET MAUI).
   * `#164`: Verificación Unitaria de TokenStorageService y Persistencia Dual.
@@ -119,6 +131,7 @@ Cada integrante tiene tareas y casos de prueba específicos ya asignados en el t
 * **Evidencias a Subir:** Capturas de la terminal con `BUILD SUCCESS` de Maven o el panel de JUnit con todas las pruebas en verde.
 
 ### 👤 Cristian Jordan (App Móvil .NET MAUI)
+
 * **PBIs Asignados:**
   * `#178`: Persistencia de sesión al reiniciar la App.
   * `#181`: Cierre de sesión voluntario y cambio de cuenta limpio.
@@ -131,6 +144,7 @@ Cada integrante tiene tareas y casos de prueba específicos ya asignados en el t
 * **Evidencias a Subir:** Capturas de pantalla del teléfono mostrando cada flujo completado exitosamente.
 
 ### 👤 Rodrigo Cortez (Panel Web Administrativo)
+
 * **PBIs Asignados:**
   * `#197`: Módulo de Chat & Soporte en tiempo real en panel web.
   * `#200`: Filtrado de agenda: Citas de hoy por defecto.
@@ -142,6 +156,7 @@ Cada integrante tiene tareas y casos de prueba específicos ya asignados en el t
 * **Evidencias a Subir:** Capturas de pantalla de las vistas del panel web mostrando las tablas, modales y calendarios actualizados.
 
 ### 👤 Cornelio Martinez (Integración, Seguridad y API REST)
+
 * **PBIs Asignados:**
   * `#171`: Pruebas de integración de endpoints REST y manejo de errores HTTP.
   * `#174`: Pruebas de integración transaccional en Supabase PostgreSQL.

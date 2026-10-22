@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -59,6 +61,13 @@ class CitaConcurrenciaTest {
         ReflectionTestUtils.setField(citaService, "estilistaRepository", estilistaRepository);
         ReflectionTestUtils.setField(citaService, "servicioRepository", servicioRepository);
         ReflectionTestUtils.setField(citaService, "usuarioRepository", usuarioRepository);
+        var reader=mock(com.shushinestudio.repositorios.ReservaJdbcRepository.class);
+        when(reader.preparar(any(),anyString())).thenReturn(Optional.of(
+            new com.shushinestudio.repositorios.ReservaJdbcRepository.Contexto(null,null,null,null,null,null,null,List.of())));
+        ReflectionTestUtils.setField(citaService,"reservaJdbcRepository",reader);
+        var tx=mock(org.springframework.transaction.PlatformTransactionManager.class);
+        when(tx.getTransaction(any())).thenReturn(new org.springframework.transaction.support.SimpleTransactionStatus());
+        ReflectionTestUtils.setField(citaService,"transactionManager",tx);
 
         usuarioCliente = Usuario.builder()
                 .id(testUserId)
@@ -107,12 +116,13 @@ class CitaConcurrenciaTest {
                 .build();
 
         when(usuarioRepository.findByLogin("cliente")).thenReturn(Optional.of(usuarioCliente));
-        when(clienteRepository.findByUsuarioId(testUserId)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.findByUsuarioLogin("cliente")).thenReturn(Optional.of(cliente));
         when(estilistaRepository.findById(1)).thenReturn(Optional.of(estilista));
         when(servicioRepository.findAllById(List.of(1))).thenReturn(List.of(servicio));
         // No hay solapamiento previo
         when(citaRepository.existeSolapamiento(eq(1), eq(fecha), eq(horaInicio), eq(LocalTime.of(11, 0)))).thenReturn(false);
 
+        when(citaRepository.siguienteNumeroCodigo()).thenReturn(1000L);
         when(citaRepository.save(any(Cita.class))).thenAnswer(invocation -> {
             Cita c = invocation.getArgument(0);
             c.setId(100);
@@ -123,7 +133,7 @@ class CitaConcurrenciaTest {
 
         assertNotNull(resultado);
         assertNotNull(resultado.getCodigoCita());
-        assertTrue(resultado.getCodigoCita().startsWith("SHU-2026-"));
+        assertEquals("SHU-2026-1000", resultado.getCodigoCita());
         assertEquals(new BigDecimal("50.00"), resultado.getSubtotal());
         assertEquals(new BigDecimal("6.50"), resultado.getIva()); // 50 * 0.13 = 6.50
         assertEquals(new BigDecimal("56.50"), resultado.getTotal());
@@ -133,7 +143,7 @@ class CitaConcurrenciaTest {
     }
 
     @Test
-    @DisplayName("Prevención de doble reserva concurrente: lanza IllegalStateException si ya existe solapamiento")
+    @DisplayName("El conflicto de solapamiento de PostgreSQL se propaga sin confirmar la reserva")
     void testPrevencionDobleReservaConcurrente() {
         LocalDate fecha = LocalDate.of(2026, 9, 20);
         LocalTime horaInicio = LocalTime.of(10, 0);
@@ -146,19 +156,15 @@ class CitaConcurrenciaTest {
                 .build();
 
         when(usuarioRepository.findByLogin("cliente")).thenReturn(Optional.of(usuarioCliente));
-        when(clienteRepository.findByUsuarioId(testUserId)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.findByUsuarioLogin("cliente")).thenReturn(Optional.of(cliente));
         when(estilistaRepository.findById(1)).thenReturn(Optional.of(estilista));
         when(servicioRepository.findAllById(List.of(1))).thenReturn(List.of(servicio));
 
-        // Simula colisión concurrente detectada en base de datos
-        when(citaRepository.existeSolapamiento(eq(1), eq(fecha), eq(horaInicio), eq(LocalTime.of(11, 0)))).thenReturn(true);
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                citaService.crearCita(dto, "cliente")
-        );
-
-        assertTrue(ex.getMessage().contains("no tiene disponible la franja horaria"));
-        verify(citaRepository, never()).save(any(Cita.class));
+        // El conflicto real se decide durante la inserción, bajo READ COMMITTED.
+        when(citaRepository.save(any(Cita.class))).thenThrow(new DataIntegrityViolationException(
+                "overlap", new SQLException("overlap", "23P01")));
+        assertThrows(DataIntegrityViolationException.class, () -> citaService.crearCita(dto, "cliente"));
+        verify(citaRepository, times(1)).save(any(Cita.class));
     }
 
     @Test
@@ -174,7 +180,7 @@ class CitaConcurrenciaTest {
                 .build();
 
         when(usuarioRepository.findByLogin("cliente")).thenReturn(Optional.of(usuarioCliente));
-        when(clienteRepository.findByUsuarioId(testUserId)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.findByUsuarioLogin("cliente")).thenReturn(Optional.of(cliente));
         when(estilistaRepository.findById(1)).thenReturn(Optional.of(estilista));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
@@ -183,6 +189,33 @@ class CitaConcurrenciaTest {
 
         assertTrue(ex.getMessage().contains("no se encuentra activo"));
         verify(citaRepository, never()).save(any(Cita.class));
+    }
+
+    @Test
+    void reutilizaPerfilCreadoPorOtraTransaccionTrasBloquearUsuario() {
+        when(clienteRepository.findByUsuarioLogin("cliente")).thenReturn(Optional.empty(),Optional.of(cliente));
+        when(usuarioRepository.findByLoginForUpdate("cliente")).thenReturn(Optional.of(usuarioCliente));
+        when(estilistaRepository.findById(1)).thenReturn(Optional.of(estilista));
+        when(servicioRepository.findAllById(List.of(1))).thenReturn(List.of(servicio));
+        when(citaRepository.siguienteNumeroCodigo()).thenReturn(1001L);
+        when(citaRepository.save(any(Cita.class))).thenAnswer(i->{Cita c=i.getArgument(0);c.setId(101);return c;});
+        CitaGuardar dto=CitaGuardar.builder().estilistaId(1).fechaCita(LocalDate.of(2027,1,1))
+                .horaInicio(LocalTime.of(10,0)).servicioIds(List.of(1)).build();
+        assertNotNull(citaService.crearCita(dto,"cliente"));
+        verify(clienteRepository,never()).save(any(Cliente.class));
+        verify(usuarioRepository).findByLoginForUpdate("cliente");
+    }
+
+    @Test
+    void rechazaCitaQueCruzaMedianoche() {
+        when(usuarioRepository.findByLogin("cliente")).thenReturn(Optional.of(usuarioCliente));
+        when(clienteRepository.findByUsuarioLogin("cliente")).thenReturn(Optional.of(cliente));
+        when(estilistaRepository.findById(1)).thenReturn(Optional.of(estilista));
+        when(servicioRepository.findAllById(List.of(1))).thenReturn(List.of(servicio));
+        CitaGuardar dto=CitaGuardar.builder().estilistaId(1).fechaCita(LocalDate.of(2027,1,1))
+                .horaInicio(LocalTime.of(23,30)).servicioIds(List.of(1)).build();
+        assertThrows(IllegalArgumentException.class,()->citaService.crearCita(dto,"cliente"));
+        verify(citaRepository,never()).save(any(Cita.class));
     }
 
     @Test

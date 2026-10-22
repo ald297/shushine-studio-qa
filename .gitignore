@@ -7,6 +7,7 @@ target/
 *.class
 *.jar
 *.war
+*.wmv
 
 # IDE & OS
 .vs/
@@ -23,3 +24,9 @@ node_modules/
 dist/
 .vercel/
 *.log
+
+# Entorno aislado y evidencias de rendimiento
+.performance/
+tests/performance/*.local.json
+tests/performance/results/
+scripts/performance/__pycache__/

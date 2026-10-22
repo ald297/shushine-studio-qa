@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
+import java.sql.SQLException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +27,7 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ProblemDetail> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
@@ -38,15 +44,46 @@ public class GlobalExceptionHandler {
             TransactionException.class
     })
     public ResponseEntity<ProblemDetail> handleConcurrencyAndDataExceptions(Exception ex, HttpServletRequest request) {
-        String detail = request.getRequestURI() != null && request.getRequestURI().contains("/citas")
-                ? "El estilista seleccionado ya no tiene disponible la franja horaria solicitada."
-                : (ex.getMessage() != null && !ex.getMessage().isBlank() ? ex.getMessage() : "Conflicto o error de concurrencia en la operación.");
-
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, detail);
-        problem.setTitle("Conflict");
-        problem.setType(URI.create("https://httpstatuses.io/409"));
+        String state = sqlState(ex);
+        boolean overlap = "23P01".equals(state);
+        boolean optimistic = ex instanceof OptimisticLockingFailureException || ex instanceof jakarta.persistence.OptimisticLockException;
+        boolean temporary = "40001".equals(state) || "40P01".equals(state)
+                || (state != null && (state.startsWith("08") || state.startsWith("53")))
+                || temporaryDataFailure(ex);
+        HttpStatus status = overlap || optimistic ? HttpStatus.CONFLICT
+                : temporary ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.INTERNAL_SERVER_ERROR;
+        String detail = overlap ? "El estilista seleccionado ya no tiene disponible la franja horaria solicitada."
+                : optimistic ? "La información fue modificada por otra operación. Actualice e intente de nuevo."
+                : temporary ? "El servicio no está disponible temporalmente. Intente más tarde."
+                : "No se pudo completar la operación por un error interno.";
+        if (!overlap && !optimistic) {
+            log.error("Error de persistencia en {} (SQLSTATE {})", request.getRequestURI(), state);
+        }
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle(status.getReasonPhrase());
+        problem.setType(URI.create("https://httpstatuses.io/" + status.value()));
         problem.setInstance(URI.create(request.getRequestURI()));
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+        return ResponseEntity.status(status).body(problem);
+    }
+
+    private boolean temporaryDataFailure(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DataAccessResourceFailureException
+                    || cause instanceof java.sql.SQLTransientException
+                    || cause instanceof java.sql.SQLRecoverableException) return true;
+            if (cause.getCause() == cause) break;
+        }
+        return false;
+    }
+
+    private String sqlState(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof SQLException sql && sql.getSQLState() != null) {
+                return sql.getSQLState();
+            }
+            if (cause.getCause() == cause) break;
+        }
+        return null;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

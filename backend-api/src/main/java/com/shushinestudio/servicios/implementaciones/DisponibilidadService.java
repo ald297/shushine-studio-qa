@@ -4,11 +4,10 @@ import com.shushinestudio.dtos.disponibilidad.DisponibilidadSalida;
 import com.shushinestudio.dtos.disponibilidad.EstilistaSalida;
 import com.shushinestudio.dtos.disponibilidad.FranjaHorariaDto;
 import com.shushinestudio.modelos.BloqueoHorario;
-import com.shushinestudio.modelos.Cita;
+import com.shushinestudio.repositorios.DisponibilidadConsultaRepository;
 import com.shushinestudio.modelos.Estilista;
 import com.shushinestudio.modelos.HorarioEstilista;
 import com.shushinestudio.repositorios.IBloqueoHorarioRepository;
-import com.shushinestudio.repositorios.ICitaRepository;
 import com.shushinestudio.repositorios.IEstilistaRepository;
 import com.shushinestudio.repositorios.IHorarioEstilistaRepository;
 import com.shushinestudio.servicios.interfaces.IDisponibilidadService;
@@ -36,7 +35,7 @@ public class DisponibilidadService implements IDisponibilidadService {
     private IBloqueoHorarioRepository bloqueoHorarioRepository;
 
     @Autowired
-    private ICitaRepository citaRepository;
+    private DisponibilidadConsultaRepository disponibilidadConsultaRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -58,43 +57,42 @@ public class DisponibilidadService implements IDisponibilidadService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public DisponibilidadSalida calcularDisponibilidad(Integer estilistaId, LocalDate fecha, Integer duracionMinutos) {
-        Estilista estilista = estilistaRepository.findById(estilistaId)
+        return calcularDisponibilidad(estilistaId, fecha, duracionMinutos, null);
+    }
+
+    @Override
+    public DisponibilidadSalida calcularDisponibilidad(Integer estilistaId, LocalDate fecha, Integer duracionMinutos, Integer servicioId) {
+        // JdbcTemplate uses one autocommit SELECT: a consistent statement snapshot without
+        // extra JPA transaction/commit round trips or lazy entity loads.
+        var contexto = disponibilidadConsultaRepository.consultar(estilistaId, fecha, servicioId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró el estilista con ID: " + estilistaId));
-
-        int diaSemana = fecha.getDayOfWeek().getValue(); // 1 = Lunes, 7 = Domingo
-        var horarioOpt = horarioEstilistaRepository.findByEstilistaIdAndDiaSemanaAndActivoTrue(estilistaId, diaSemana);
-
-        if (horarioOpt.isEmpty()) {
-            return DisponibilidadSalida.builder()
-                    .estilistaId(estilista.getId())
-                    .estilistaNombre(estilista.getNombreCompleto())
-                    .fecha(fecha)
-                    .franjas(List.of())
-                    .build();
+        if (contexto.inicio() == null) {
+            return DisponibilidadSalida.builder().estilistaId(contexto.estilistaId())
+                    .estilistaNombre(contexto.nombre()).fecha(fecha).franjas(List.of()).build();
         }
-
-        HorarioEstilista horario = horarioOpt.get();
-        List<BloqueoHorario> bloqueos = bloqueoHorarioRepository.findByEstilistaIdAndFecha(estilistaId, fecha);
-        List<Cita> citas = citaRepository.findByEstilistaIdAndFechaCitaAndEstadoNot(estilistaId, fecha, "Cancelled");
-
-        int pasoMinutos = (duracionMinutos != null && duracionMinutos > 0) ? duracionMinutos : 30;
+        int duracion = duracionMinutos != null ? duracionMinutos
+                : contexto.duracionServicio() != null ? contexto.duracionServicio() : 30;
+        int pasoMinutos = duracion > 0 ? duracion : 30;
+        if (pasoMinutos >= 24 * 60) throw new IllegalArgumentException("La duración debe ser menor de 24 horas");
+        var bloqueos = contexto.bloqueos();
+        var citas = contexto.citas();
         List<FranjaHorariaDto> franjas = new ArrayList<>();
 
-        LocalTime cursor = horario.getHoraInicio();
-        LocalTime finJornada = horario.getHoraFin();
-
-        while (cursor.plusMinutes(pasoMinutos).isBefore(finJornada) || cursor.plusMinutes(pasoMinutos).equals(finJornada)) {
-            LocalTime slotInicio = cursor;
-            LocalTime slotFin = cursor.plusMinutes(pasoMinutos);
+        long finNanos = contexto.fin().toNanoOfDay();
+        long duracionNanos = java.time.Duration.ofMinutes(pasoMinutos).toNanos();
+        long pasoNanos = java.time.Duration.ofMinutes(30).toNanos();
+        // Linear time arithmetic preserves seconds without wrapping to midnight.
+        for (long nanos = contexto.inicio().toNanoOfDay(); nanos + duracionNanos <= finNanos; nanos += pasoNanos) {
+            LocalTime slotInicio = LocalTime.ofNanoOfDay(nanos);
+            LocalTime slotFin = LocalTime.ofNanoOfDay(nanos + duracionNanos);
 
             boolean disponible = true;
             String motivo = null;
 
             // 1. Validar horario de almuerzo
-            if (horario.getHoraInicioAlmuerzo() != null && horario.getHoraFinAlmuerzo() != null) {
-                if (seSolapan(slotInicio, slotFin, horario.getHoraInicioAlmuerzo(), horario.getHoraFinAlmuerzo())) {
+            if (contexto.almuerzoInicio() != null && contexto.almuerzoFin() != null) {
+                if (seSolapan(slotInicio, slotFin, contexto.almuerzoInicio(), contexto.almuerzoFin())) {
                     disponible = false;
                     motivo = "Horario de almuerzo";
                 }
@@ -102,10 +100,10 @@ public class DisponibilidadService implements IDisponibilidadService {
 
             // 2. Validar bloqueos horarios (vacaciones, capacitaciones, permisos)
             if (disponible) {
-                for (BloqueoHorario b : bloqueos) {
-                    if (seSolapan(slotInicio, slotFin, b.getHoraInicio(), b.getHoraFin())) {
+                for (var b : bloqueos) {
+                    if (seSolapan(slotInicio, slotFin, b.inicio(), b.fin())) {
                         disponible = false;
-                        motivo = b.getMotivo();
+                        motivo = b.motivo();
                         break;
                     }
                 }
@@ -113,8 +111,8 @@ public class DisponibilidadService implements IDisponibilidadService {
 
             // 3. Validar citas agendadas
             if (disponible) {
-                for (Cita c : citas) {
-                    if (seSolapan(slotInicio, slotFin, c.getHoraInicio(), c.getHoraFin())) {
+                for (var c : citas) {
+                    if (seSolapan(slotInicio, slotFin, c.inicio(), c.fin())) {
                         disponible = false;
                         motivo = "Horario reservado";
                         break;
@@ -135,12 +133,11 @@ public class DisponibilidadService implements IDisponibilidadService {
                     .motivoNoDisponible(motivo)
                     .build());
 
-            cursor = cursor.plusMinutes(30); // Desplazamiento por bloques de 30 min
         }
 
         return DisponibilidadSalida.builder()
-                .estilistaId(estilista.getId())
-                .estilistaNombre(estilista.getNombreCompleto())
+                .estilistaId(contexto.estilistaId())
+                .estilistaNombre(contexto.nombre())
                 .fecha(fecha)
                 .franjas(franjas)
                 .build();

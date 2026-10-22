@@ -12,6 +12,7 @@ public interface IDisponibilidadService {
     List<EstilistaSalida> obtenerTodosEstilistas();
     EstilistaSalida obtenerEstilistaPorId(Integer id);
     DisponibilidadSalida calcularDisponibilidad(Integer estilistaId, LocalDate fecha, Integer duracionMinutos);
+    DisponibilidadSalida calcularDisponibilidad(Integer estilistaId, LocalDate fecha, Integer duracionMinutos, Integer servicioId);
     EstilistaSalida crearEstilista(EstilistaGuardarDto dto);
     void actualizarEstadoEstilista(Integer id, Boolean activo);
     void eliminarEstilista(Integer id);

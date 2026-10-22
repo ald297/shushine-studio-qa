@@ -4,7 +4,6 @@ import com.shushinestudio.dtos.disponibilidad.DisponibilidadSalida;
 import com.shushinestudio.dtos.disponibilidad.EstilistaGuardarDto;
 import com.shushinestudio.dtos.disponibilidad.EstilistaSalida;
 import com.shushinestudio.servicios.interfaces.IDisponibilidadService;
-import com.shushinestudio.servicios.interfaces.IServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,9 +24,6 @@ public class EstilistaController {
 
     @Autowired
     private IDisponibilidadService disponibilidadService;
-
-    @Autowired(required = false)
-    private IServicioService servicioService;
 
     @GetMapping({"", "/activos", "/lista"})
     @Operation(summary = "Listar estilistas", description = "Retorna el listado del equipo profesional del salón.")
@@ -87,16 +83,7 @@ public class EstilistaController {
             @RequestParam(required = false) Integer duracionMinutos,
             @RequestParam(required = false) Integer servicioId
     ) {
-        int duracion = (duracionMinutos != null && duracionMinutos > 0) ? duracionMinutos : 30;
-        if (duracionMinutos == null && servicioId != null && servicioService != null) {
-            try {
-                var serv = servicioService.obtenerPorId(servicioId);
-                if (serv != null && serv.getDuracionMinutos() != null && serv.getDuracionMinutos() > 0) {
-                    duracion = serv.getDuracionMinutos();
-                }
-            } catch (Exception ignored) {}
-        }
-        DisponibilidadSalida disponibilidad = disponibilidadService.calcularDisponibilidad(id, fecha, duracion);
+        DisponibilidadSalida disponibilidad = disponibilidadService.calcularDisponibilidad(id, fecha, duracionMinutos, servicioId);
         return ResponseEntity.ok(disponibilidad);
     }
 
